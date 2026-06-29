@@ -195,50 +195,92 @@ final class LiveInterviewSession: ObservableObject {
             category: .behavioral,
             questions: []
         )
+        
+        let jobTitle = activeConfig.job.title
+        let isVisa = jobTitle.contains("B1/B2") || jobTitle.contains("F-1") || jobTitle.contains("H-1B") || jobTitle.contains("J-1")
+        
         let questionList = activeConfig.questions.enumerated()
             .map { "\($0.offset + 1). \($0.element)" }
             .joined(separator: "\n")
-        let remediationBlock = activeConfig.remediationFocus.isEmpty
-            ? ""
-            : """
+            
+        if isVisa {
+            let company = activeConfig.job.company
+            let officerStyle = company.replacingOccurrences(of: "US Consulate (", with: "").replacingOccurrences(of: ")", with: "")
+            let lang = activeConfig.language
+            
+            return """
+            You are a U.S. Consular Officer conducting a visa interview for a \(jobTitle).
+            Your interviewing style is \(officerStyle).
+            \(officerStyle == "Strict" ? "Be very terse, direct, slightly skeptical, and look for inconsistencies. Ask probing follow-up questions." : officerStyle == "Friendly" ? "Be warm, encouraging, polite, and conversational." : "Be professional, neutral, formal, and efficient.")
+            
+            IMPORTANT RULES:
+            1. You must conduct the entire interview in \(lang).
+            2. When asking the primary questions listed below, you must translate them into \(lang). Speak only in \(lang). Do not speak English under any circumstances.
+            3. Speak naturally like a real consular officer. Keep every spoken turn under two short sentences.
+            4. Ask one short question at a time. Never bundle multiple questions together.
+            5. Listen to the candidate's answer, acknowledge it briefly, then ask the next primary question (or one concise follow-up if needed).
+            6. There are \(max(activeConfig.questions.count, 1)) primary questions. You must work through them in order.
+            7. When you ask a new primary question, append the exact control token <QUESTION_PROGRESS:N> to the text output only (where N is the 1-based question number). Do not speak the token.
+            8. Do not end the interview until all primary questions have been asked and answered.
+            9. Once the final answer is complete, close the interview briefly (stating whether their visa is approved or needs administrative processing) and append the exact token <END_INTERVIEW> to the text output only. Do not speak the token.
+            
+            Primary questions to ask in order:
+            \(questionList)
+            """
+        } else {
+            let remediationBlock = activeConfig.remediationFocus.isEmpty
+                ? ""
+                : """
 
-        Targeted weakness remediation mode:
-        The candidate is specifically practicing these weakness areas:
-        \(activeConfig.remediationFocus.map { "- \($0)" }.joined(separator: "\n"))
-        Ask questions that help the candidate repair these gaps through concrete examples, better structure, clearer language, and role-specific proof. Keep the tone encouraging but direct.
-        """
+            Targeted weakness remediation mode:
+            The candidate is specifically practicing these weakness areas:
+            \(activeConfig.remediationFocus.map { "- \($0)" }.joined(separator: "\n"))
+            Ask questions that help the candidate repair these gaps through concrete examples, better structure, clearer language, and role-specific proof. Keep the tone encouraging but direct.
+            """
 
-        return """
-        You are Vivid, CareerVivid's live mock interviewer.
-        This is a \(activeConfig.category.rawValue) interview for \(activeConfig.job.title) at \(activeConfig.job.company).
-        Speak naturally like a human interviewer, not like a form.
-        Ask one short question at a time. Never bundle multiple fields or multiple interview questions together.
-        Keep every spoken turn under two short sentences.
-        Start with a friendly opening and one role-relevant question. Do not explain the whole interview upfront.
-        Listen to the candidate's answer, acknowledge it briefly, then ask a focused follow-up or the next question.
-        If the candidate's transcript looks like your own previous question or only repeats a few words from your speech, treat it as audio echo and ignore it.
-        If the answer is unclear, ask one gentle clarification instead of moving on.
-        Make questions specific to the role, tools, trade-offs, impact, and collaboration expectations.
-        There are \(max(activeConfig.questions.count, 1)) primary questions. You must work through the primary questions in order.
-        When you ask a new primary question, append the exact control token <QUESTION_PROGRESS:N> to the text output only, where N is the 1-based primary question number. Do not speak the token.
-        Ask at most one concise follow-up for each primary question. After the candidate answers that follow-up, move to the next primary question instead of staying on the same topic.
-        Do not end the interview until every primary question has been asked and the candidate has answered the final primary question.
-        When the final answer is complete, close the interview briefly and append the exact token <END_INTERVIEW> to your text output only. Do not speak the token.
+            return """
+            You are Vivid, CareerVivid's live mock interviewer.
+            This is a \(activeConfig.category.rawValue) interview for \(activeConfig.job.title) at \(activeConfig.job.company).
+            Speak naturally like a human interviewer, not like a form.
+            Ask one short question at a time. Never bundle multiple fields or multiple interview questions together.
+            Keep every spoken turn under two short sentences.
+            Start with a friendly opening and one role-relevant question. Do not explain the whole interview upfront.
+            Listen to the candidate's answer, acknowledge it briefly, then ask a focused follow-up or the next question.
+            If the candidate's transcript looks like your own previous question or only repeats a few words from your speech, treat it as audio echo and ignore it.
+            If the answer is unclear, ask one gentle clarification instead of moving on.
+            Make questions specific to the role, tools, trade-offs, impact, and collaboration expectations.
+            There are \(max(activeConfig.questions.count, 1)) primary questions. You must work through the primary questions in order.
+            When you ask a new primary question, append the exact control token <QUESTION_PROGRESS:N> to the text output only, where N is the 1-based primary question number. Do not speak the token.
+            Ask at most one concise follow-up for each primary question. After the candidate answers that follow-up, move to the next primary question instead of staying on the same topic.
+            Do not end the interview until every primary question has been asked and the candidate has answered the final primary question.
+            When the final answer is complete, close the interview briefly and append the exact token <END_INTERVIEW> to your text output only. Do not speak the token.
 
-        Suggested question direction:
-        \(questionList)
-        \(remediationBlock)
-        """
+            Suggested question direction:
+            \(questionList)
+            \(remediationBlock)
+            """
+        }
     }
 
     private func sendKickoff() {
-        let role = config?.job.title ?? "this role"
-        let company = config?.job.company ?? "the company"
-        let category = config?.category.rawValue ?? "Behavioral"
-        if let focus = config?.remediationFocus, !focus.isEmpty {
-            sendClientText("Start a short targeted \(category) skill booster for \(role) at \(company). Focus on \(focus.prefix(2).joined(separator: " and ")). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
+        guard let activeConfig = config else { return }
+        let jobTitle = activeConfig.job.title
+        let isVisa = jobTitle.contains("B1/B2") || jobTitle.contains("F-1") || jobTitle.contains("H-1B") || jobTitle.contains("J-1")
+        
+        if isVisa {
+            let company = activeConfig.job.company
+            let officerStyle = company.replacingOccurrences(of: "US Consulate (", with: "").replacingOccurrences(of: ")", with: "")
+            let lang = activeConfig.language
+            sendClientText("Start a U.S. \(jobTitle) visa mock interview conducted in \(lang) with a \(officerStyle) officer. Introduce yourself and ask primary question 1 only, appending <QUESTION_PROGRESS:1> to text output only.")
         } else {
-            sendClientText("Start a short, natural \(category) mock interview for \(role) at \(company). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
+            let role = config?.job.title ?? "this role"
+            let company = config?.job.company ?? "the company"
+            let category = config?.category.rawValue ?? "Behavioral"
+            if let focus = config?.remediationFocus, !focus.isEmpty {
+                sendClientText("Start a short targeted \(category) skill booster for \(role) at \(company). Focus on \(focus.prefix(2).joined(separator: " and ")). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
+            } else {
+                sendClientText("Start a short, natural \(category) mock interview for \(role) at \(company). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
+            }
         }
     }
 

@@ -1,16 +1,36 @@
 @preconcurrency import AVFoundation
 import Foundation
 
-enum LiveInterviewSessionState: Equatable {
+enum ResumeCoachSpeaker: String, Equatable, Sendable {
+    case coach = "Coach"
+    case user = "You"
+}
+
+struct ResumeCoachMessage: Identifiable, Equatable, Sendable {
+    let id: UUID
+    var speaker: ResumeCoachSpeaker
+    var text: String
+    var isLive: Bool
+
+    init(id: UUID = UUID(), speaker: ResumeCoachSpeaker, text: String, isLive: Bool = false) {
+        self.id = id
+        self.speaker = speaker
+        self.text = text
+        self.isLive = isLive
+    }
+}
+
+enum ResumeCoachSessionState: Equatable {
     case idle
     case connecting
-    case interviewerSpeaking
+    case speaking
+    case waitingForAnswer
     case listening
-    case ended
+    case readyToGenerate
     case failed(String)
 }
 
-enum LiveInterviewSessionError: Error, LocalizedError {
+enum ResumeCoachSessionError: Error, LocalizedError {
     case microphonePermissionDenied
     case audioEngineFailed
     case invalidServerMessage
@@ -19,72 +39,80 @@ enum LiveInterviewSessionError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .microphonePermissionDenied:
-            return "Microphone access is required for the live mock interview."
+            return "Microphone access is required for the live resume coach."
         case .audioEngineFailed:
             return "The microphone could not start. Please check Simulator or device microphone input."
         case .invalidServerMessage:
-            return "The live interview returned an unexpected message."
+            return "The resume coach live session returned an unexpected message."
         case .missingLiveToken:
-            return "CareerVivid could not create a live interview token."
+            return "CareerVivid could not create a live resume coach token."
         }
     }
 }
 
+private struct ResumeCoachLiveToken: Decodable {
+    let accessToken: String
+    let project: String
+    let location: String
+    let model: String
+    let sessionId: String
+}
+
 @MainActor
-final class LiveInterviewSession: ObservableObject {
-    @Published private(set) var messages: [InterviewLiveMessage] = []
-    @Published private(set) var state: LiveInterviewSessionState = .idle
+final class ResumeCoachSession: ObservableObject {
+    @Published private(set) var messages: [ResumeCoachMessage] = []
+    @Published private(set) var state: ResumeCoachSessionState = .idle
     @Published private(set) var questionIndex = 0
     @Published private(set) var liveTranscript = ""
-    @Published private(set) var sessionId: String?
 
-    private let tokenService = InterviewPracticeService()
+    let questions = [
+        "Understand the target role and the story the resume should tell.",
+        "Learn the user's recent work history through a relaxed conversation.",
+        "Explore day-to-day ownership, tools, systems, users, and responsibilities.",
+        "Draw out achievements, metrics, business impact, and proof points.",
+        "Capture projects, portfolio work, open-source work, demos, and technical stack.",
+        "Collect education, certifications, languages, awards, and domain knowledge.",
+        "Confirm contact details and what the final resume should emphasize."
+    ]
+
+    private let tokenService = ResumeCoachLiveTokenService()
     private let inputAudioEngine = AVAudioEngine()
     private let outputAudioEngine = AVAudioEngine()
     private let outputPlayer = AVAudioPlayerNode()
-    private var config: InterviewLiveConfig?
     private var webSocketTask: URLSessionWebSocketTask?
     private var sessionTask: Task<Void, Never>?
     private var isOutputAudioPrepared = false
     private var pendingOutputBufferIds = Set<UUID>()
+    private var estimatedOutputTailSeconds: Double = 0
     private var shouldListenAfterPlayback = false
-    private var shouldEndAfterPlayback = false
-    private var currentInterviewerMessageId: UUID?
+    private var currentCoachMessageId: UUID?
     private var currentUserMessageId: UUID?
     private var hasCompleted = false
-    private var modelRequestedEnd = false
-    private var startedAt: Date?
-    private let interviewerPlaybackSafetyDelay: TimeInterval = 1.0
+    private var modelRequestedCompletion = false
+    private let coachPlaybackSafetyDelay: TimeInterval = 1.1
 
     var progressText: String {
-        let total = max(config?.questions.count ?? 7, 1)
-        return "\(min(questionIndex + 1, total)) / \(total)"
+        "\(min(questionIndex + 1, questions.count)) / \(questions.count)"
     }
 
-    var elapsedSeconds: Int {
-        guard let startedAt else { return 0 }
-        return max(Int(Date().timeIntervalSince(startedAt)), 1)
+    var canStartAnswering: Bool {
+        state == .waitingForAnswer || state == .idle
     }
 
-    var canFinishAnswer: Bool {
-        state == .listening
+    var canGenerate: Bool {
+        state != .connecting &&
+        state != .speaking &&
+        state != .listening &&
+        messages.contains { $0.speaker == .user && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
-    var canRequestFeedback: Bool {
-        state == .ended && transcriptEntries().contains { $0.speaker == .user }
-    }
-
-    func start(config: InterviewLiveConfig) {
-        cancel(resetToIdle: true)
-        self.config = config
+    func start() {
+        cancel()
         messages = []
         questionIndex = 0
         liveTranscript = ""
-        sessionId = nil
         hasCompleted = false
-        modelRequestedEnd = false
-        shouldEndAfterPlayback = false
-        startedAt = Date()
+        modelRequestedCompletion = false
         state = .connecting
 
         sessionTask = Task { [weak self] in
@@ -92,68 +120,65 @@ final class LiveInterviewSession: ObservableObject {
         }
     }
 
-    func cancel(resetToIdle: Bool = true) {
+    func cancel() {
         sessionTask?.cancel()
         sessionTask = nil
         stopMicrophone(removeEmptyLiveUserMessage: true)
         stopOutputAudio()
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
-        if resetToIdle {
+        if state != .readyToGenerate {
             state = .idle
-            hasCompleted = false
+        }
+    }
+
+    func startAnswering() {
+        if case .failed = state {
+            start()
+            return
+        }
+        Task {
+            do {
+                try await startMicrophone()
+            } catch {
+                state = .failed(error.localizedDescription)
+            }
         }
     }
 
     func finishAnswering() {
         guard state == .listening else { return }
-        state = .interviewerSpeaking
+        state = .speaking
         stopMicrophone()
-        finishLiveMessage(for: .user)
 
-        if hasEnoughInterviewContent {
-            sendClientText("The candidate has provided enough information. Give a brief closing and append <END_INTERVIEW> to text output only.")
-        } else {
-            advanceQuestionProgress()
-            sendJSON(["realtimeInput": ["audioStreamEnd": true]])
+        if questionIndex >= questions.count - 1 {
+            finishLiveMessage(for: .user)
+            markReadyToGenerate()
+            return
         }
+
+        advanceQuestionProgress()
+        sendJSON(["realtimeInput": ["audioStreamEnd": true]])
     }
 
-    func endInterview() {
-        guard state != .ended else { return }
-        hasCompleted = true
-        modelRequestedEnd = false
+    func skipQuestion() {
+        guard state == .waitingForAnswer || state == .listening || state == .idle else { return }
+        state = .speaking
         stopMicrophone(removeEmptyLiveUserMessage: true)
-        stopOutputAudio()
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        webSocketTask = nil
-        state = .ended
+        advanceQuestionProgress()
+        sendClientText("Skip this question and ask the next resume-building question.")
     }
 
-    private func completeInterviewFromModel() {
-        guard state != .ended else { return }
-        updateQuestionProgress(to: max(config?.questions.count ?? 7, 1))
-        endInterview()
-    }
-
-    func transcriptEntries() -> [InterviewTranscriptEntry] {
-        messages.compactMap { message in
-            let cleanText = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !cleanText.isEmpty, cleanText != "Listening..." else { return nil }
-            return InterviewTranscriptEntry(
-                speaker: message.speaker,
-                text: cleanText,
-                isFinal: !message.isLive,
-                timestamp: message.timestamp
-            )
-        }
+    func transcriptForGeneration() -> String {
+        messages
+            .filter { !$0.isLive }
+            .map { "\($0.speaker.rawValue): \($0.text)" }
+            .joined(separator: "\n")
     }
 
     private func connectLiveSession() async {
         do {
-            guard let config else { throw LiveInterviewSessionError.missingLiveToken }
-            let token = try await tokenService.fetchLiveToken(config: config)
-            sessionId = token.sessionId
+            let token = try await tokenService.fetchToken()
             try await openWebSocket(with: token)
         } catch {
             guard !hasCompleted, !Task.isCancelled else { return }
@@ -161,8 +186,8 @@ final class LiveInterviewSession: ObservableObject {
         }
     }
 
-    private func openWebSocket(with token: InterviewLiveToken) async throws {
-        guard !token.accessToken.isEmpty else { throw LiveInterviewSessionError.missingLiveToken }
+    private func openWebSocket(with token: ResumeCoachLiveToken) async throws {
+        guard !token.accessToken.isEmpty else { throw ResumeCoachSessionError.missingLiveToken }
 
         let encodedToken = token.accessToken.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? token.accessToken
         let url = URL(string: "wss://\(token.location)-aiplatform.googleapis.com/ws/google.cloud.aiplatform.v1beta1.LlmBidiService/BidiGenerateContent?access_token=\(encodedToken)")!
@@ -190,56 +215,25 @@ final class LiveInterviewSession: ObservableObject {
     }
 
     private var systemInstruction: String {
-        let activeConfig = config ?? InterviewLiveConfig(
-            job: SampleCareerVividData.jobs[0],
-            category: .behavioral,
-            questions: []
-        )
-        let questionList = activeConfig.questions.enumerated()
-            .map { "\($0.offset + 1). \($0.element)" }
-            .joined(separator: "\n")
-        let remediationBlock = activeConfig.remediationFocus.isEmpty
-            ? ""
-            : """
-
-        Targeted weakness remediation mode:
-        The candidate is specifically practicing these weakness areas:
-        \(activeConfig.remediationFocus.map { "- \($0)" }.joined(separator: "\n"))
-        Ask questions that help the candidate repair these gaps through concrete examples, better structure, clearer language, and role-specific proof. Keep the tone encouraging but direct.
         """
+        You are CareerVivid's live resume coach. You are not a generic assistant.
+        Speak like a calm human career coach in a relaxed conversation.
+        Start with one open-ended prompt about the role or resume story. Do not start by asking for all contact details.
+        Ask exactly one question per turn. Never bundle name, role, location, email, phone, LinkedIn, and portfolio into the same question.
+        Keep each spoken prompt under two short sentences, and use brief acknowledgements like "Got it" or "That helps."
+        Give the user time to finish. If an answer is short or unclear, ask a gentle follow-up instead of moving on quickly.
+        If the transcript looks like your own previous question or only repeats a few words from your speech, treat it as audio echo and ignore it.
+        The user may answer briefly, out of order, or with incomplete details; collect missing details naturally later.
+        Preserve technical terms, company names, product names, tools, and metrics exactly when possible.
+        After enough information is collected, say that you have enough to create an editable resume draft and append the exact text token <RESUME_READY> to your text output only. Do not speak the token.
 
-        return """
-        You are Vivid, CareerVivid's live mock interviewer.
-        This is a \(activeConfig.category.rawValue) interview for \(activeConfig.job.title) at \(activeConfig.job.company).
-        Speak naturally like a human interviewer, not like a form.
-        Ask one short question at a time. Never bundle multiple fields or multiple interview questions together.
-        Keep every spoken turn under two short sentences.
-        Start with a friendly opening and one role-relevant question. Do not explain the whole interview upfront.
-        Listen to the candidate's answer, acknowledge it briefly, then ask a focused follow-up or the next question.
-        If the candidate's transcript looks like your own previous question or only repeats a few words from your speech, treat it as audio echo and ignore it.
-        If the answer is unclear, ask one gentle clarification instead of moving on.
-        Make questions specific to the role, tools, trade-offs, impact, and collaboration expectations.
-        There are \(max(activeConfig.questions.count, 1)) primary questions. You must work through the primary questions in order.
-        When you ask a new primary question, append the exact control token <QUESTION_PROGRESS:N> to the text output only, where N is the 1-based primary question number. Do not speak the token.
-        Ask at most one concise follow-up for each primary question. After the candidate answers that follow-up, move to the next primary question instead of staying on the same topic.
-        Do not end the interview until every primary question has been asked and the candidate has answered the final primary question.
-        When the final answer is complete, close the interview briefly and append the exact token <END_INTERVIEW> to your text output only. Do not speak the token.
-
-        Suggested question direction:
-        \(questionList)
-        \(remediationBlock)
+        Information to collect:
+        \(questions.enumerated().map { "\($0.offset + 1). \($0.element)" }.joined(separator: "\n"))
         """
     }
 
     private func sendKickoff() {
-        let role = config?.job.title ?? "this role"
-        let company = config?.job.company ?? "the company"
-        let category = config?.category.rawValue ?? "Behavioral"
-        if let focus = config?.remediationFocus, !focus.isEmpty {
-            sendClientText("Start a short targeted \(category) skill booster for \(role) at \(company). Focus on \(focus.prefix(2).joined(separator: " and ")). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
-        } else {
-            sendClientText("Start a short, natural \(category) mock interview for \(role) at \(company). Ask primary question 1 only and append <QUESTION_PROGRESS:1> to text output only.")
-        }
+        sendClientText("Start the resume coach session now. Begin with one natural open-ended question about the role or resume story, not a list of fields.")
     }
 
     private func sendClientText(_ text: String) {
@@ -266,11 +260,11 @@ final class LiveInterviewSession: ObservableObject {
                 try handleServerMessage(text)
             case .data(let data):
                 guard let text = String(data: data, encoding: .utf8) else {
-                    throw LiveInterviewSessionError.invalidServerMessage
+                    throw ResumeCoachSessionError.invalidServerMessage
                 }
                 try handleServerMessage(text)
             @unknown default:
-                throw LiveInterviewSessionError.invalidServerMessage
+                throw ResumeCoachSessionError.invalidServerMessage
             }
         }
     }
@@ -280,11 +274,11 @@ final class LiveInterviewSession: ObservableObject {
             let data = text.data(using: .utf8),
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
-            throw LiveInterviewSessionError.invalidServerMessage
+            throw ResumeCoachSessionError.invalidServerMessage
         }
 
         if json["setupComplete"] != nil {
-            state = .interviewerSpeaking
+            state = .speaking
             sendKickoff()
             return
         }
@@ -292,7 +286,7 @@ final class LiveInterviewSession: ObservableObject {
         guard let serverContent = json["serverContent"] as? [String: Any] else { return }
 
         processTranscription(serverContent["inputTranscription"] as? [String: Any], speaker: .user)
-        processTranscription(serverContent["outputTranscription"] as? [String: Any], speaker: .interviewer)
+        processTranscription(serverContent["outputTranscription"] as? [String: Any], speaker: .coach)
         playModelAudio(from: serverContent)
 
         if (serverContent["interrupted"] as? Bool) == true {
@@ -300,30 +294,24 @@ final class LiveInterviewSession: ObservableObject {
         }
 
         if (serverContent["turnComplete"] as? Bool) == true {
-            finishLiveMessage(for: .interviewer)
+            finishLiveMessage(for: .coach)
             finishLiveMessage(for: .user)
             guard !hasCompleted else { return }
-
-            if modelRequestedEnd && hasEnoughInterviewContent {
-                if hasPendingOutputAudio {
-                    shouldEndAfterPlayback = true
-                } else {
-                    completeInterviewFromModel()
-                }
+            if modelRequestedCompletion, hasEnoughResumeContent {
+                markReadyToGenerate()
                 return
-            } else if modelRequestedEnd {
-                modelRequestedEnd = false
+            } else if modelRequestedCompletion {
+                modelRequestedCompletion = false
             }
-
             if hasPendingOutputAudio {
                 shouldListenAfterPlayback = true
             } else {
-                enterListeningAfterInterviewerPause()
+                enterListeningAfterCoachPause()
             }
         }
     }
 
-    private func processTranscription(_ payload: [String: Any]?, speaker: InterviewLiveSpeaker) {
+    private func processTranscription(_ payload: [String: Any]?, speaker: ResumeCoachSpeaker) {
         guard let payload else { return }
 
         if speaker == .user, shouldSuppressUserTranscription() {
@@ -331,69 +319,51 @@ final class LiveInterviewSession: ObservableObject {
         }
 
         if var text = payload["text"] as? String, !text.isEmpty {
-            if speaker == .interviewer {
-                text = processInterviewerControlTokens(in: text)
+            if speaker == .coach, text.contains("<RESUME_READY>") {
+                text = text.replacingOccurrences(of: "<RESUME_READY>", with: "")
+                modelRequestedCompletion = true
             }
-            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                appendLiveMessage(speaker: speaker, text: text)
-            }
+            appendLiveMessage(speaker: speaker, text: text)
         }
 
         if (payload["finished"] as? Bool) == true {
-            finishLiveMessage(for: speaker)
+            if speaker == .coach {
+                finishLiveMessage(for: speaker)
+            }
+        }
+
+        if modelRequestedCompletion, hasEnoughResumeContent {
+            markReadyToGenerate()
         }
     }
 
-    private var hasEnoughInterviewContent: Bool {
+    private var hasEnoughResumeContent: Bool {
         let userMessages = messages.filter { message in
             message.speaker == .user &&
             !message.isLive &&
-            message.text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 10
+            message.text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 12
         }
-        let totalQuestions = config?.questions.count ?? 7
-        return questionIndex >= totalQuestions - 1 && userMessages.count >= min(totalQuestions, 5)
-    }
-
-    private func processInterviewerControlTokens(in rawText: String) -> String {
-        var text = rawText
-
-        if text.contains("<END_INTERVIEW>") {
-            text = text.replacingOccurrences(of: "<END_INTERVIEW>", with: "")
-            modelRequestedEnd = true
-        }
-
-        while let range = text.range(of: #"<QUESTION_PROGRESS:\s*\d+\s*>"#, options: .regularExpression) {
-            let token = String(text[range])
-            if let digitRange = token.range(of: #"\d+"#, options: .regularExpression),
-               let questionNumber = Int(token[digitRange]) {
-                updateQuestionProgress(to: questionNumber)
-            }
-            text.removeSubrange(range)
-        }
-
-        return text
-    }
-
-    private func updateQuestionProgress(to questionNumber: Int) {
-        let total = max(config?.questions.count ?? 7, 1)
-        let clamped = min(max(questionNumber, 1), total)
-        questionIndex = max(questionIndex, clamped - 1)
+        let transcriptLength = userMessages
+            .map(\.text)
+            .joined(separator: " ")
+            .count
+        return userMessages.count >= 3 || transcriptLength >= 220 || questionIndex >= questions.count - 1
     }
 
     private func shouldSuppressUserTranscription() -> Bool {
-        hasPendingOutputAudio || (state == .interviewerSpeaking && currentUserMessageId == nil)
+        hasPendingOutputAudio || (state == .speaking && currentUserMessageId == nil)
     }
 
-    private func appendLiveMessage(speaker: InterviewLiveSpeaker, text: String) {
+    private func appendLiveMessage(speaker: ResumeCoachSpeaker, text: String) {
         let messageId: UUID
         switch speaker {
-        case .interviewer:
-            if let currentInterviewerMessageId {
-                messageId = currentInterviewerMessageId
+        case .coach:
+            if let currentCoachMessageId {
+                messageId = currentCoachMessageId
             } else {
                 messageId = UUID()
-                currentInterviewerMessageId = messageId
-                messages.append(InterviewLiveMessage(id: messageId, speaker: speaker, text: "", isLive: true))
+                currentCoachMessageId = messageId
+                messages.append(ResumeCoachMessage(id: messageId, speaker: speaker, text: "", isLive: true))
             }
         case .user:
             if let currentUserMessageId {
@@ -401,7 +371,7 @@ final class LiveInterviewSession: ObservableObject {
             } else {
                 messageId = UUID()
                 currentUserMessageId = messageId
-                messages.append(InterviewLiveMessage(id: messageId, speaker: speaker, text: "", isLive: true))
+                messages.append(ResumeCoachMessage(id: messageId, speaker: speaker, text: "", isLive: true))
             }
         }
 
@@ -428,19 +398,19 @@ final class LiveInterviewSession: ObservableObject {
         return cleanCurrent + (needsSpace ? " " : "") + cleanFragment
     }
 
-    private func finishLiveMessage(for speaker: InterviewLiveSpeaker) {
-        let messageId = speaker == .interviewer ? currentInterviewerMessageId : currentUserMessageId
+    private func finishLiveMessage(for speaker: ResumeCoachSpeaker) {
+        let messageId = speaker == .coach ? currentCoachMessageId : currentUserMessageId
         guard let messageId, let index = messages.firstIndex(where: { $0.id == messageId }) else { return }
         let cleanText = messages[index].text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleanText.isEmpty || cleanText == "Listening..." {
+        if cleanText.isEmpty {
             messages.remove(at: index)
         } else {
             messages[index].text = cleanText
             messages[index].isLive = false
         }
 
-        if speaker == .interviewer {
-            currentInterviewerMessageId = nil
+        if speaker == .coach {
+            currentCoachMessageId = nil
         } else {
             currentUserMessageId = nil
             liveTranscript = ""
@@ -469,17 +439,17 @@ final class LiveInterviewSession: ObservableObject {
     }
 
     private func scheduleOutputAudio(_ data: Data) throws {
-        state = .interviewerSpeaking
+        state = .speaking
         stopMicrophone(removeEmptyLiveUserMessage: true)
         try prepareOutputAudio()
 
         guard let format = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 24_000, channels: 1, interleaved: false) else {
-            throw LiveInterviewSessionError.audioEngineFailed
+            throw ResumeCoachSessionError.audioEngineFailed
         }
 
         let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Int16>.size)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            throw LiveInterviewSessionError.audioEngineFailed
+            throw ResumeCoachSessionError.audioEngineFailed
         }
         buffer.frameLength = frameCount
         data.withUnsafeBytes { rawBuffer in
@@ -489,7 +459,7 @@ final class LiveInterviewSession: ObservableObject {
 
         let bufferId = UUID()
         pendingOutputBufferIds.insert(bufferId)
-        let safetyDelay = interviewerPlaybackSafetyDelay
+        let safetyDelay = coachPlaybackSafetyDelay
         outputPlayer.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { [weak self] _ in
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: UInt64(safetyDelay * 1_000_000_000))
@@ -504,12 +474,12 @@ final class LiveInterviewSession: ObservableObject {
 
     private func completeOutputBuffer(_ bufferId: UUID) {
         guard pendingOutputBufferIds.remove(bufferId) != nil else { return }
-        if !hasPendingOutputAudio, shouldEndAfterPlayback {
-            shouldEndAfterPlayback = false
-            completeInterviewFromModel()
-        } else if !hasPendingOutputAudio, shouldListenAfterPlayback, !hasCompleted {
+        if !hasPendingOutputAudio, shouldListenAfterPlayback, !hasCompleted {
             shouldListenAfterPlayback = false
-            enterListeningAfterInterviewerPause()
+            estimatedOutputTailSeconds = 0
+            enterListeningAfterCoachPause()
+        } else if !hasPendingOutputAudio {
+            estimatedOutputTailSeconds = 0
         }
     }
 
@@ -534,17 +504,27 @@ final class LiveInterviewSession: ObservableObject {
             outputAudioEngine.stop()
         }
         pendingOutputBufferIds.removeAll()
+        estimatedOutputTailSeconds = 0
         shouldListenAfterPlayback = false
     }
 
     private func advanceQuestionProgress() {
-        let total = config?.questions.count ?? 7
-        questionIndex = min(questionIndex + 1, max(total - 1, 0))
+        questionIndex = min(questionIndex + 1, max(questions.count - 1, 0))
     }
 
-    private func enterListeningAfterInterviewerPause() {
+    private func markReadyToGenerate() {
+        hasCompleted = true
+        modelRequestedCompletion = false
+        state = .readyToGenerate
+        stopMicrophone(removeEmptyLiveUserMessage: true)
+        stopOutputAudio()
+        webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        webSocketTask = nil
+    }
+
+    private func enterListeningAfterCoachPause() {
         Task { [weak self] in
-            try? await Task.sleep(nanoseconds: UInt64(0.65 * 1_000_000_000))
+            try? await Task.sleep(nanoseconds: UInt64(0.7 * 1_000_000_000))
             await MainActor.run {
                 guard let self, !self.hasPendingOutputAudio, !self.hasCompleted else { return }
                 self.enterListening()
@@ -565,7 +545,7 @@ final class LiveInterviewSession: ObservableObject {
     private func startMicrophone() async throws {
         guard !hasCompleted, !hasPendingOutputAudio else { return }
         let micGranted = await requestMicrophonePermission()
-        guard micGranted else { throw LiveInterviewSessionError.microphonePermissionDenied }
+        guard micGranted else { throw ResumeCoachSessionError.microphonePermissionDenied }
 
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
@@ -597,7 +577,7 @@ final class LiveInterviewSession: ObservableObject {
             beginUserLiveMessage()
         } catch {
             stopMicrophone(removeEmptyLiveUserMessage: true)
-            throw LiveInterviewSessionError.audioEngineFailed
+            throw ResumeCoachSessionError.audioEngineFailed
         }
     }
 
@@ -605,7 +585,7 @@ final class LiveInterviewSession: ObservableObject {
         guard currentUserMessageId == nil else { return }
         let messageId = UUID()
         currentUserMessageId = messageId
-        messages.append(InterviewLiveMessage(id: messageId, speaker: .user, text: "Listening...", isLive: true))
+        messages.append(ResumeCoachMessage(id: messageId, speaker: .user, text: "Listening...", isLive: true))
     }
 
     private func stopMicrophone(removeEmptyLiveUserMessage: Bool = false) {
@@ -614,11 +594,11 @@ final class LiveInterviewSession: ObservableObject {
             inputAudioEngine.inputNode.removeTap(onBus: 0)
         }
         if removeEmptyLiveUserMessage {
-            settleUserLiveMessageBeforeInterviewerSpeaks()
+            settleUserLiveMessageBeforeCoachSpeaks()
         }
     }
 
-    private func settleUserLiveMessageBeforeInterviewerSpeaks() {
+    private func settleUserLiveMessageBeforeCoachSpeaks() {
         guard
             let currentUserMessageId,
             let index = messages.firstIndex(where: { $0.id == currentUserMessageId })
@@ -703,5 +683,30 @@ final class LiveInterviewSession: ObservableObject {
         }
 
         return Data(bytes: samples, count: Int(outputBuffer.frameLength) * MemoryLayout<Int16>.size)
+    }
+}
+
+private actor ResumeCoachLiveTokenService {
+    private let decoder = JSONDecoder()
+
+    func fetchToken() async throws -> ResumeCoachLiveToken {
+        let auth = try await CVFirebaseAuth.shared.authToken()
+        let endpoint = URL(string: "https://us-west1-jastalk-firebase.cloudfunctions.net/resumeCoachLiveToken")!
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(auth.idToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "role": "resume builder",
+            "source": "ios"
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
+            throw ResumeSyncError.functionError(message ?? "CareerVivid API returned HTTP \(http.statusCode).")
+        }
+
+        return try decoder.decode(ResumeCoachLiveToken.self, from: data)
     }
 }
