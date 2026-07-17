@@ -32,9 +32,9 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>CareerVivid uses the microphone to turn spoken resume notes into editable resume drafts.</string>
+	<string>CareerVivid uses the microphone to transcribe your mock interview answers.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>CareerVivid uses speech recognition to show your resume coach answers in real time.</string>
+	<string>CareerVivid uses speech recognition to turn your mock interview answers into feedback.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>

@@ -38,26 +38,23 @@ public struct CareerVividMobileMVPView: View {
     private var selectedTabView: some View {
         switch selectedTab {
         case .home:
-            HomeView(jobs: jobs)
+            InterviewDashboardView()
         case .jobs:
             JobsView(jobs: $jobs)
         case .practice:
-            PracticeView()
-        case .resume:
-            ResumeView()
+            PracticeCatalogView()
         }
     }
 }
 
 private enum MobileTab: String, CaseIterable, Hashable {
-    case home, jobs, practice, resume
+    case home, jobs, practice
 
     var title: String {
         switch self {
         case .home: return "Home"
         case .jobs: return "Jobs"
-        case .practice: return "Practice"
-        case .resume: return "Resume"
+        case .practice: return "Mock"
         }
     }
 
@@ -66,7 +63,6 @@ private enum MobileTab: String, CaseIterable, Hashable {
         case .home: return "house.fill"
         case .jobs: return "briefcase.fill"
         case .practice: return "mic.fill"
-        case .resume: return "doc.text.fill"
         }
     }
 }

@@ -38,6 +38,8 @@ extension Color {
     static let cvGreenSoft = Color(red: 0.918, green: 0.984, blue: 0.945)
     static let cvPurple = Color(red: 0.451, green: 0.341, blue: 1.000)
     static let cvPurpleSoft = Color(red: 0.941, green: 0.929, blue: 1.000)
+    static let cvStudioAccent = Color(red: 0.384, green: 0.357, blue: 0.835) // #625BD5
+    static let cvStudioAccentSoft = Color(red: 0.953, green: 0.949, blue: 1.000) // #F3F2FF
     static let cvPink = Color(red: 1.000, green: 0.431, blue: 0.659)
     static let cvPinkSoft = Color(red: 1.000, green: 0.918, blue: 0.953)
     static let cvYellow = Color(red: 1.000, green: 0.702, blue: 0.220)

@@ -19,4 +19,34 @@ final class CareerVividMobileMVPTests: XCTestCase {
         XCTAssertEqual(SampleCareerVividData.resume.matchScore, 95)
         XCTAssertFalse(SampleCareerVividData.actions.isEmpty)
     }
+
+    func testQuestionFocusedReportPromptIncludesExactQuestionAndAvoidsForcedFramework() {
+        let question = "Tell me about a time you resolved a difficult conflict with a teammate."
+        let config = InterviewLiveConfig(
+            job: JobLead(
+                title: "Interview candidate",
+                company: "SAP",
+                matchScore: 100,
+                stage: .interview,
+                nextStep: "Practice"
+            ),
+            category: .behavioral,
+            questions: [question],
+            questionContext: question,
+            remediationContextId: nil
+        )
+
+        XCTAssertTrue(config.prompt.contains(question))
+        XCTAssertTrue(config.prompt.contains("specific to SAP"))
+        XCTAssertTrue(config.prompt.contains("Do not force a prescribed answer framework"))
+    }
+
+    func testOnlyCodingAndSystemDesignUseWebWorkspaceRouting() {
+        XCTAssertEqual(QuestionWebQuestStage.resolve(stageTitle: "Coding round", category: .technical), .coding)
+        XCTAssertEqual(QuestionWebQuestStage.resolve(stageTitle: "System design", category: .systemDesign), .systemDesign)
+
+        ["Recruiter screen", "Behavioral round", "Values round", "Final round"].forEach { stage in
+            XCTAssertNil(QuestionWebQuestStage.resolve(stageTitle: stage, category: .behavioral))
+        }
+    }
 }
