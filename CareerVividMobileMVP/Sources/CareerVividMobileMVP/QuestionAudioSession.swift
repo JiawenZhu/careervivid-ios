@@ -34,6 +34,7 @@ enum TimedAnswerState: Equatable {
     }
 }
 
+#if compiler(>=6.2)
 @available(iOS 26.0, *)
 private final class AppleNativeSpeechSession: @unchecked Sendable {
     private let requestedLocale: Locale
@@ -217,6 +218,7 @@ private final class AppleNativeSpeechBufferConverter: @unchecked Sendable {
         return converted
     }
 }
+#endif
 
 private enum AppleNativeSpeechError: LocalizedError {
     case unsupportedLocale
@@ -437,6 +439,7 @@ final class TimedAnswerSession: ObservableObject {
 
             var appleNativeBufferHandler: (@Sendable (AVAudioPCMBuffer) -> Void)?
 
+            #if compiler(>=6.2)
             if appleSpeechAuthorized,
                #available(iOS 26.0, *), SpeechTranscriber.isAvailable {
                 do {
@@ -462,6 +465,7 @@ final class TimedAnswerSession: ObservableObject {
                     usesAppleNativeSpeech = false
                 }
             }
+            #endif
 
             var legacyRequest: SFSpeechAudioBufferRecognitionRequest?
             if !usesAppleNativeSpeech, appleSpeechAuthorized {
@@ -534,6 +538,7 @@ final class TimedAnswerSession: ObservableObject {
         QuestionRecordingCue.play(.stopped)
         QuestionHaptic.play(.light)
 
+        #if compiler(>=6.2)
         if #available(iOS 26.0, *),
            usesAppleNativeSpeech,
            let nativeSession = appleNativeSpeechSession as? AppleNativeSpeechSession {
@@ -549,6 +554,7 @@ final class TimedAnswerSession: ObservableObject {
             }
             return
         }
+        #endif
 
         recognitionRequest?.endAudio()
 
@@ -686,10 +692,12 @@ final class TimedAnswerSession: ObservableObject {
     }
 
     private func cancelAppleNativeSpeechSession() {
+        #if compiler(>=6.2)
         if #available(iOS 26.0, *),
            let nativeSession = appleNativeSpeechSession as? AppleNativeSpeechSession {
             Task { await nativeSession.cancel() }
         }
+        #endif
         appleNativeSpeechSession = nil
         usesAppleNativeSpeech = false
     }
@@ -837,5 +845,4 @@ enum QuestionRecordingCue {
         return buffer
     }
 }
-
 
