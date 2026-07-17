@@ -1,7 +1,5 @@
-# This workflow will build a Swift project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-
-name: Swift
+# Build and test the native iOS application.
+name: iOS
 
 on:
   push:
@@ -11,12 +9,15 @@ on:
 
 jobs:
   build:
-
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+      - uses: actions/checkout@v4
+      - name: Build iOS app
+        run: >-
+          xcodebuild
+          -project CareerVividMobileMVP/CareerVividMobileMVP.xcodeproj
+          -scheme CareerVividMobileMVP
+          -configuration Debug
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
+          clean build

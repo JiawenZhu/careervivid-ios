@@ -311,7 +311,7 @@ extension SampleCareerVividData {
                            period: "2024 – Present",
                            bullets: ["Built AI-powered career platform serving 500+ users",
                                      "Developed Chrome Extension with 200+ installs",
-                                     "Integrated Gemini AI for resume tailoring"]),
+                                     "Integrated Vivid AI for resume tailoring"]),
             WorkExperience(company: "Jastalk", role: "Senior Software Engineer",
                            period: "2021 – 2024",
                            bullets: ["Led team of 4 engineers", "Scaled to 10,000+ daily active users"])

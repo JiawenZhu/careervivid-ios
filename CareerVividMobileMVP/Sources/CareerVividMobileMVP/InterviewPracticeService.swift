@@ -18,13 +18,21 @@ struct InterviewLiveConfig: Equatable, Sendable {
     var job: JobLead
     var category: PracticeCategory
     var questions: [String]
+    /// The exact prompt currently shown in the mobile flow. This lets the
+    /// existing report API evaluate one answer against its actual company and
+    /// question instead of applying a generic interview template.
+    var questionContext: String? = nil
     var remediationContextId: String?
     var remediationFocus: [String] = []
 
     var prompt: String {
         let base = "\(category.rawValue) interview for \(job.title) at \(job.company). Focus on role-specific proof, communication, decision quality, and practical experience."
-        guard !remediationFocus.isEmpty else { return base }
-        return "\(base) This is a targeted weakness remediation interview. Focus on: \(remediationFocus.joined(separator: "; "))."
+        let exactQuestion = questionContext?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let questionGuidance = (exactQuestion?.isEmpty == false)
+            ? " This is a single-question attempt. Evaluate the candidate's answer to this exact prompt: \(exactQuestion!). Give feedback specific to \(job.company), the question, and the candidate's content. Do not force a prescribed answer framework unless it genuinely helps this question."
+            : ""
+        guard !remediationFocus.isEmpty else { return base + questionGuidance }
+        return "\(base)\(questionGuidance) This is a targeted weakness remediation interview. Focus on: \(remediationFocus.joined(separator: "; "))."
     }
 }
 
@@ -85,6 +93,18 @@ struct InterviewLiveToken: Decodable, Sendable {
     let questions: [String]?
 }
 
+/// Official company-stage questions supplied by the authenticated CareerVivid
+/// backend. The backend is generated from the same source guides as web so a
+/// native attempt never falls back to a second, generic question bank.
+struct MobileInterviewQuestionSet: Decodable, Sendable {
+    let success: Bool
+    let guideSlug: String
+    let stage: String
+    let company: String
+    let sourceURL: String
+    let questions: [String]
+}
+
 private struct InterviewAPIErrorResponse: Decodable {
     var error: String?
     var message: String?
@@ -94,6 +114,17 @@ private struct MobileInterviewAnalyzeResponse: Decodable {
     var success: Bool
     var practiceId: String
     var analysis: InterviewAnalysisResult
+}
+
+private struct MobileInterviewTranscribeResponse: Decodable {
+    var success: Bool
+    var transcript: String
+    var suggestions: [String]?
+}
+
+struct MobileInterviewTranscriptionResult: Sendable {
+    var transcript: String
+    var suggestions: [String]
 }
 
 actor InterviewPracticeService {
@@ -114,6 +145,19 @@ actor InterviewPracticeService {
         var payload = basePayload(config: config)
         payload["source"] = "ios"
         return try await post(endpoint: endpoint, payload: payload, responseType: InterviewLiveToken.self)
+    }
+
+    func fetchOfficialQuestions(guideSlug: String, stage: String) async throws -> MobileInterviewQuestionSet {
+        let endpoint = URL(string: "https://\(region)-\(projectId).cloudfunctions.net/mobileInterviewQuestions")!
+        return try await post(
+            endpoint: endpoint,
+            payload: [
+                "guideSlug": guideSlug,
+                "stage": stage,
+                "source": "ios",
+            ],
+            responseType: MobileInterviewQuestionSet.self
+        )
     }
 
     func analyze(
@@ -140,6 +184,44 @@ actor InterviewPracticeService {
             throw InterviewPracticeServiceError.invalidResponse
         }
         return response.analysis
+    }
+
+    /// Converts a captured 16 kHz mono WAV answer into reviewable text using
+    /// the same Vivid / us-west1 backend as interview reports.
+    func transcribe(
+        audioWAV: Data,
+        durationInSeconds: Int,
+        question: String,
+        company: String,
+        stage: String
+    ) async throws -> MobileInterviewTranscriptionResult {
+        guard !audioWAV.isEmpty else {
+            throw InterviewPracticeServiceError.functionError("The recording did not contain audio. Try again or type your answer instead.")
+        }
+        let endpoint = URL(string: "https://\(region)-\(projectId).cloudfunctions.net/mobileInterviewTranscribe")!
+        let response = try await post(
+            endpoint: endpoint,
+            payload: [
+                "audioBase64": audioWAV.base64EncodedString(),
+                "mimeType": "audio/wav",
+                "durationInSeconds": max(durationInSeconds, 1),
+                "question": question,
+                "company": company,
+                "stage": stage,
+            ],
+            responseType: MobileInterviewTranscribeResponse.self
+        )
+        guard response.success else {
+            throw InterviewPracticeServiceError.invalidResponse
+        }
+        return MobileInterviewTranscriptionResult(
+            transcript: response.transcript.trimmingCharacters(in: .whitespacesAndNewlines),
+            suggestions: (response.suggestions ?? [])
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .prefix(3)
+                .map { $0 }
+        )
     }
 
     private func basePayload(config: InterviewLiveConfig) -> [String: Any] {
@@ -296,7 +378,6 @@ struct InterviewReportSnapshot: Identifiable, Equatable, Sendable {
 
 enum LocalInterviewReportCache {
     private static let key = "cv_local_interview_reports_v1"
-    private static let limit = 12
 
     static func save(result: InterviewAnalysisResult, config: InterviewLiveConfig) {
         var reports = load()
@@ -309,7 +390,10 @@ enum LocalInterviewReportCache {
         )
         reports.removeAll { $0.analysis.id == result.id }
         reports.insert(snapshot, at: 0)
-        reports = Array(reports.prefix(limit))
+        // Keep every local result. Each remote attempt is also persisted as an
+        // individual Firestore document, so a newer report for the same prompt
+        // never replaces an earlier one.
+        reports.sort { $0.savedAt > $1.savedAt }
 
         guard let data = try? JSONEncoder().encode(reports) else { return }
         UserDefaults.standard.set(data, forKey: key)
@@ -335,17 +419,41 @@ actor RemoteInterviewReportStore {
         self.session = session
     }
 
-    func loadReports(limit: Int = 12) async throws -> [InterviewReportSnapshot] {
+    func loadReports(limit: Int = 200) async throws -> [InterviewReportSnapshot] {
         let auth = try await CVFirebaseAuth.shared.authToken()
         let encodedUID = auth.uid.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? auth.uid
-        let urlString = "https://firestore.googleapis.com/v1/projects/\(projectId)/databases/(default)/documents/users/\(encodedUID)/practiceHistory?pageSize=\(max(limit * 2, limit))&orderBy=timestamp%20desc"
+        let directReports = try await loadDirectReports(uid: encodedUID, authToken: auth.idToken, limit: limit)
+        let legacyReports = try await loadLegacyReports(uid: encodedUID, authToken: auth.idToken, limit: limit)
+        var seen = Set<String>()
+        return (directReports + legacyReports)
+            .sorted { $0.savedAt > $1.savedAt }
+            .filter { seen.insert($0.analysis.id).inserted }
+            .prefix(limit)
+            .map { $0 }
+    }
+
+    private func loadDirectReports(uid: String, authToken: String, limit: Int) async throws -> [InterviewReportSnapshot] {
+        let urlString = "https://firestore.googleapis.com/v1/projects/\(projectId)/databases/(default)/documents/users/\(uid)/interviewReports?pageSize=\(limit)&orderBy=timestamp%20desc"
         guard let url = URL(string: urlString) else { return [] }
 
+        let documents = try await getDocuments(url: url, authToken: authToken)
+        return documents.compactMap(Self.directReport(from:))
+    }
+
+    private func loadLegacyReports(uid: String, authToken: String, limit: Int) async throws -> [InterviewReportSnapshot] {
+        let urlString = "https://firestore.googleapis.com/v1/projects/\(projectId)/databases/(default)/documents/users/\(uid)/practiceHistory?pageSize=\(max(limit * 2, limit))&orderBy=timestamp%20desc"
+        guard let url = URL(string: urlString) else { return [] }
+
+        let documents = try await getDocuments(url: url, authToken: authToken)
+        return documents.flatMap(Self.reports(from:))
+    }
+
+    private func getDocuments(url: URL, authToken: String) async throws -> [[String: Any]] {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.timeoutInterval = 30
-        request.setValue("Bearer \(auth.idToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
 
         let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
@@ -359,9 +467,36 @@ actor RemoteInterviewReportStore {
             return []
         }
 
-        let reports = documents.flatMap(Self.reports(from:))
-            .sorted { $0.savedAt > $1.savedAt }
-        return Array(reports.prefix(limit))
+        return documents
+    }
+
+    private static func directReport(from document: [String: Any]) -> InterviewReportSnapshot? {
+        guard let fields = document["fields"] as? [String: Any] else { return nil }
+        let practiceId = FirestoreValue.stringField(fields, "practiceId") ?? documentNameTail(document["name"] as? String)
+        let job = FirestoreValue.mapField(fields, "job")
+        let jobTitle = FirestoreValue.stringField(job, "title") ?? "Interview Practice"
+        let company = FirestoreValue.stringField(job, "company") ?? "CareerVivid"
+        let category = parseCategory(FirestoreValue.stringField(fields, "category") ?? "Behavioral")
+        let questions = FirestoreValue.stringArrayField(fields, "questions")
+        let timestamp = FirestoreValue.millisecondsField(fields, "timestamp") ?? Int(Date().timeIntervalSince1970 * 1000)
+        let transcript = FirestoreValue.mapArrayField(fields, "transcript").compactMap(Self.transcriptEntry(from:))
+        let analysisFields = FirestoreValue.mapField(fields, "analysis")
+        guard
+            let analysis = analysisResult(from: analysisFields, fallbackTranscript: transcript, fallbackTimestamp: timestamp)
+        else {
+            return nil
+        }
+
+        return InterviewReportSnapshot(
+            id: "\(practiceId)-\(analysis.id)",
+            practiceId: practiceId,
+            jobTitle: jobTitle,
+            company: company,
+            category: category,
+            questions: questions,
+            savedAt: analysis.timestamp > 0 ? analysis.timestamp : timestamp,
+            analysis: analysis
+        )
     }
 
     private static func reports(from document: [String: Any]) -> [InterviewReportSnapshot] {
