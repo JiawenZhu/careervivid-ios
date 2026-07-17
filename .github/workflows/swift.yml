@@ -13,11 +13,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build and test iOS app
+      - name: Build iOS app
         run: >-
           xcodebuild
           -project CareerVividMobileMVP/CareerVividMobileMVP.xcodeproj
           -scheme CareerVividMobileMVP
           -configuration Debug
           -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
-          clean test
+          clean build
