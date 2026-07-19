@@ -29,6 +29,7 @@ struct PracticeCatalogView: View {
     @State private var filter: MockInterviewFilter = .all
     @State private var searchText = ""
     @State private var guideLimit = 12
+    @State private var companyProgress = CompanyQuestProgressStore.all()
 
     private var matchingGuides: [MobileInterviewGuideSummary] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -65,7 +66,7 @@ struct PracticeCatalogView: View {
                         MockInterviewGuideHeader()
                         MockInterviewSearchField(searchText: $searchText)
                         MockInterviewFilterBar(filter: $filter)
-                        MockInterviewGuideList(guides: visibleGuides)
+                        MockInterviewGuideList(guides: visibleGuides, progressByCompany: companyProgress)
 
                         if matchingGuides.count > visibleGuides.count {
                             Button(action: showMoreGuides) {
@@ -93,6 +94,7 @@ struct PracticeCatalogView: View {
             }
             .onChange(of: searchText) { _, _ in resetGuideLimit() }
             .onChange(of: filter) { _, _ in resetGuideLimit() }
+            .onAppear { companyProgress = CompanyQuestProgressStore.all() }
         }
     }
 }
@@ -224,11 +226,15 @@ private struct MockInterviewFilterBar: View {
 
 private struct MockInterviewGuideList: View {
     let guides: [MobileInterviewGuideSummary]
+    let progressByCompany: [String: CompanyQuestProgress]
 
     var body: some View {
         LazyVStack(spacing: 12) {
             ForEach(guides) { guide in
-                MockInterviewCompanyCard(guide: guide)
+                MockInterviewCompanyCard(
+                    guide: guide,
+                    progress: progressByCompany[CompanyQuestProgressStore.companyKey(for: guide.company)] ?? CompanyQuestProgress()
+                )
             }
         }
     }
@@ -236,6 +242,7 @@ private struct MockInterviewGuideList: View {
 
 private struct MockInterviewCompanyCard: View {
     let guide: MobileInterviewGuideSummary
+    let progress: CompanyQuestProgress
 
     private var practiceJob: JobLead {
         JobLead(
@@ -281,9 +288,11 @@ private struct MockInterviewCompanyCard: View {
                 }
             }
 
+            MockInterviewCompanyProgress(progress: progress)
+
             HStack(spacing: 10) {
                 NavigationLink(value: guide) {
-                    Label("Start quest", systemImage: "figure.fencing")
+                    Label(progress.attempts == 0 ? "Start quest" : "Continue quest", systemImage: progress.attempts == 0 ? "figure.fencing" : "arrow.clockwise")
                         .font(.headline.weight(.bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -313,6 +322,55 @@ private struct MockInterviewCompanyCard: View {
         .background(Color.cvQuestCard.opacity(0.97), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(Color.cvQuestBorder, lineWidth: 1))
         .shadow(color: Color.cvQuestShadow, radius: 7, x: 0, y: 3)
+    }
+}
+
+private struct MockInterviewCompanyProgress: View {
+    let progress: CompanyQuestProgress
+
+    private let stageIDs = MockInterviewQuestStage.stageIDs
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text("Interview loop")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.cvQuestMuted)
+
+                Spacer(minLength: 8)
+
+                if progress.attempts == 0 {
+                    Text("Not started")
+                } else {
+                    Text("\(progress.clearedStageIDs.count) of \(stageIDs.count) cleared · Best \(progress.bestScore)")
+                }
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.cvQuestMuted)
+
+            HStack(spacing: 5) {
+                ForEach(stageIDs, id: \.self) { stageID in
+                    Capsule()
+                        .fill(stageColor(for: stageID))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 6)
+                }
+            }
+
+            if progress.attempts > 0 {
+                Text("\(progress.attempts) \(progress.attempts == 1 ? "attempt" : "attempts")")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Color.cvQuestMuted)
+            }
+        }
+        .padding(12)
+        .background(Color.cvStudioAccentSoft.opacity(0.48), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func stageColor(for stageID: String) -> Color {
+        if progress.hasCleared(stageID) { return Color.cvQuestSuccess }
+        if progress.hasAttempted(stageID) { return Color.cvQuestWarning }
+        return Color.cvSeparator
     }
 }
 
@@ -355,6 +413,7 @@ private struct MockInterviewEmptyState: View {
 
 private struct MockInterviewQuestView: View {
     let guide: MobileInterviewGuideSummary
+    @State private var progress = CompanyQuestProgress()
 
     private var stages: [MockInterviewQuestStage] {
         MockInterviewQuestStage.tracks(for: guide)
@@ -370,13 +429,17 @@ private struct MockInterviewQuestView: View {
         )
     }
 
+    private var nextStage: MockInterviewQuestStage? {
+        stages.first { !progress.hasCleared($0.id) } ?? stages.last
+    }
+
     var body: some View {
         ZStack {
             MockInterviewGridBackground()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    MockInterviewQuestHero(guide: guide, stageCount: stages.count)
+                    MockInterviewQuestHero(guide: guide, stages: stages, progress: progress)
 
                     VStack(spacing: 0) {
                         ForEach(Array(stages.enumerated()), id: \.element.id) { index, stage in
@@ -384,7 +447,9 @@ private struct MockInterviewQuestView: View {
                                 guide: guide,
                                 stage: stage,
                                 index: index,
-                                practiceJob: practiceJob
+                                practiceJob: practiceJob,
+                                progress: progress,
+                                isNext: stage.id == nextStage?.id
                             )
 
                             if index < stages.count - 1 {
@@ -401,15 +466,17 @@ private struct MockInterviewQuestView: View {
         }
         .navigationTitle("Interview Studio")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { progress = CompanyQuestProgressStore.progress(for: guide.company) }
     }
 }
 
 private struct MockInterviewQuestHero: View {
     let guide: MobileInterviewGuideSummary
-    let stageCount: Int
+    let stages: [MockInterviewQuestStage]
+    let progress: CompanyQuestProgress
 
-    private var firstStage: MockInterviewQuestStage? {
-        MockInterviewQuestStage.tracks(for: guide).first
+    private var nextStage: MockInterviewQuestStage? {
+        stages.first { !progress.hasCleared($0.id) } ?? stages.last
     }
 
     var body: some View {
@@ -439,15 +506,17 @@ private struct MockInterviewQuestHero: View {
                 .foregroundStyle(Color.cvQuestBody)
                 .fixedSize(horizontal: false, vertical: true)
 
+            MockInterviewQuestProgressBar(progress: progress, stageIDs: stages.map(\.id))
+
             NavigationLink {
                 PracticeView(
                     initialJob: practiceJob,
-                    initialCategory: firstStage?.category ?? .behavioral,
-                    initialStageTitle: firstStage?.title,
+                    initialCategory: nextStage?.category ?? .behavioral,
+                    initialStageTitle: nextStage?.title,
                     guideSlug: guide.slug
                 )
             } label: {
-                Label("Continue · \(firstStage?.title ?? "Mock interview")", systemImage: "play")
+                Label("Continue · \(nextStage?.title ?? "Mock interview")", systemImage: "play")
                     .font(.headline.weight(.bold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
@@ -466,7 +535,49 @@ private struct MockInterviewQuestHero: View {
 
     private var questDescription: String {
         let sourcedStages = guide.stageCount == 0 ? "a curated company guide" : "\(guide.stageCount) sourced interview stages"
-        return "\(sourcedStages), expanded into all \(stageCount) focused practice tracks. Score 75+ on each to clear your quest."
+        return "\(sourcedStages), expanded into all \(stages.count) focused practice tracks. Score 75+ on each to clear your quest."
+    }
+}
+
+private struct MockInterviewQuestProgressBar: View {
+    let progress: CompanyQuestProgress
+    let stageIDs: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Your progress")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.cvQuestMuted)
+                Spacer()
+                Text("\(progress.clearedStageIDs.count) of \(stageIDs.count) stages cleared")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.cvQuestMuted)
+            }
+
+            HStack(spacing: 5) {
+                ForEach(stageIDs, id: \.self) { stageID in
+                    Capsule()
+                        .fill(stageColor(for: stageID))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 7)
+                }
+            }
+
+            if progress.attempts > 0 {
+                Text("\(progress.attempts) \(progress.attempts == 1 ? "attempt" : "attempts") · Best score \(progress.bestScore)")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Color.cvQuestMuted)
+            }
+        }
+        .padding(12)
+        .background(Color.cvStudioAccentSoft.opacity(0.48), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private func stageColor(for stageID: String) -> Color {
+        if progress.hasCleared(stageID) { return Color.cvQuestSuccess }
+        if progress.hasAttempted(stageID) { return Color.cvQuestWarning }
+        return Color.cvSeparator
     }
 }
 
@@ -476,6 +587,8 @@ private struct MockInterviewQuestStage: Identifiable {
     let description: String
     let category: PracticeCategory
     let systemImage: String
+
+    static let stageIDs = ["recruiter", "coding", "system-design", "behavioral", "values", "final"]
 
     static func tracks(for guide: MobileInterviewGuideSummary) -> [MockInterviewQuestStage] {
         let templates: [MockInterviewQuestStage] = [
@@ -495,38 +608,59 @@ private struct MockInterviewQuestStageRow: View {
     let stage: MockInterviewQuestStage
     let index: Int
     let practiceJob: JobLead
+    let progress: CompanyQuestProgress
+    let isNext: Bool
+
+    private var isCleared: Bool { progress.hasCleared(stage.id) }
+    private var hasAttempt: Bool { progress.hasAttempted(stage.id) }
+    private var score: Int? { progress.bestScore(for: stage.id) }
+    private var statusText: String {
+        isCleared ? "CLEARED" : isNext ? "UP NEXT" : hasAttempt ? "IN PROGRESS" : ""
+    }
+    private var actionLabel: String {
+        isCleared ? "Practice again" : hasAttempt ? "Resume stage" : "Start stage"
+    }
+    private var actionSymbol: String {
+        hasAttempt ? "arrow.clockwise" : stage.systemImage
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 13) {
-                Text("\(index + 1)")
+                Image(systemName: isCleared ? "checkmark" : "\(index + 1).circle")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(Color.cvStudioAccent)
+                    .foregroundStyle(isCleared ? Color.cvQuestSuccess : Color.cvStudioAccent)
                     .frame(width: 43, height: 43)
-                    .background(Color.cvStudioAccentSoft, in: Circle())
-                    .overlay(Circle().stroke(Color.cvStudioAccent.opacity(0.18), lineWidth: 1))
+                    .background((isCleared ? Color.cvQuestSuccess : Color.cvStudioAccent).opacity(0.10), in: Circle())
+                    .overlay(Circle().stroke((isCleared ? Color.cvQuestSuccess : Color.cvStudioAccent).opacity(0.18), lineWidth: 1))
 
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 8) {
                         Text(stage.title)
                             .font(.title3.weight(.bold))
                             .foregroundStyle(Color.cvQuestInk)
-                        if index == 0 {
-                            Text("UP NEXT")
+                        if !statusText.isEmpty {
+                            Text(statusText)
                                 .font(.caption2.weight(.bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 7)
                                 .padding(.vertical, 4)
-                                .background(Color.cvStudioAccent, in: Capsule())
+                                .background(isCleared ? Color.cvQuestSuccess : Color.cvStudioAccent, in: Capsule())
                         }
                     }
                     Text(stage.description)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.cvQuestBody)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("Pass ≥ 75")
+                    Text(stageProgressText)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(Color.cvQuestMuted)
+
+                    if let score {
+                        ProgressView(value: Double(score), total: 100)
+                            .tint(isCleared ? Color.cvQuestSuccess : Color.cvQuestWarning)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
 
@@ -538,7 +672,7 @@ private struct MockInterviewQuestStageRow: View {
                     guideSlug: guide.slug
                 )
             } label: {
-                Label(index == 0 ? "Start stage" : stage.title == "System design" ? "Open whiteboard" : "Start stage", systemImage: stage.systemImage)
+                Label(actionLabel, systemImage: actionSymbol)
                     .font(.subheadline.weight(.bold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
@@ -546,7 +680,13 @@ private struct MockInterviewQuestStageRow: View {
             .buttonStyle(MockInterviewPrimaryButtonStyle())
         }
         .padding(16)
-        .background(index == 0 ? Color.cvStudioAccentSoft.opacity(0.72) : Color.clear)
+        .background(isNext ? Color.cvStudioAccentSoft.opacity(0.72) : Color.clear)
+    }
+
+    private var stageProgressText: String {
+        guard hasAttempt else { return "Pass ≥ 75" }
+        let attemptLabel = "\(progress.attempts(for: stage.id)) \(progress.attempts(for: stage.id) == 1 ? "attempt" : "attempts")"
+        return "Pass ≥ 75 · Best \(score ?? 0) · \(attemptLabel)"
     }
 }
 
@@ -594,24 +734,7 @@ private struct CompanyLogoMark: View {
 
 private struct MockInterviewGridBackground: View {
     var body: some View {
-        GeometryReader { proxy in
-            Canvas { context, size in
-                let spacing: CGFloat = 34
-                var path = Path()
-                for x in stride(from: 0, through: size.width, by: spacing) {
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: size.height))
-                }
-                for y in stride(from: 0, through: size.height, by: spacing) {
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-                }
-                context.stroke(path, with: .color(Color.cvQuestGrid), lineWidth: 1)
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height)
-        }
-        .background(Color.cvQuestBackground)
-        .ignoresSafeArea()
+        Color.cvAppBackground.ignoresSafeArea()
     }
 }
 
@@ -665,15 +788,13 @@ private extension MobileInterviewGuideSummary {
 }
 
 private extension Color {
-    static let cvQuestBackground = Color(red: 0.969, green: 0.941, blue: 0.902) // #F7F0E6
-    static let cvQuestPaper = Color(red: 1.000, green: 0.980, blue: 0.945) // #FFFAF1
-    static let cvQuestCard = Color(red: 1.000, green: 0.979, blue: 0.941) // #FFF9F0
-    static let cvQuestInk = Color(red: 0.129, green: 0.106, blue: 0.086) // #211B16
-    static let cvQuestBody = Color(red: 0.400, green: 0.353, blue: 0.290) // #665A4A
-    static let cvQuestMuted = Color(red: 0.420, green: 0.447, blue: 0.514) // #6B7283
-    static let cvQuestBorder = Color(red: 0.894, green: 0.827, blue: 0.737) // #E4D3BC
-    static let cvQuestGrid = Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.075)
-    static let cvQuestShadow = Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.08)
+    static let cvQuestPaper = Color.cvSurface
+    static let cvQuestCard = Color.cvSurface
+    static let cvQuestInk = Color.cvInk
+    static let cvQuestBody = Color.cvInkSecondary
+    static let cvQuestMuted = Color.cvInkSecondary
+    static let cvQuestBorder = Color.cvSeparator
+    static let cvQuestShadow = Color.black.opacity(0.05)
     static let cvQuestAmber = Color(red: 0.663, green: 0.475, blue: 0.208) // #A97935
     static let cvQuestSuccess = Color(red: 0.082, green: 0.502, blue: 0.239) // #15803D
     static let cvQuestWarning = Color(red: 0.851, green: 0.467, blue: 0.024) // #D97706

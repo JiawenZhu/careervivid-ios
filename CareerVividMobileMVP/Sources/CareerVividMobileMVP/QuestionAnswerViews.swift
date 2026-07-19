@@ -8,6 +8,8 @@ struct QuestionAnswerScreen: View {
     let questionCount: Int
     let question: String
     let officialSourceURL: String
+    let personalizedSourceLabel: String?
+    let coachingHint: String?
     @ObservedObject var session: TimedAnswerSession
     let isAnalyzing: Bool
     let isVividTranscribing: Bool
@@ -34,10 +36,15 @@ struct QuestionAnswerScreen: View {
                 QuestionPromptCard(
                     category: category,
                     question: question,
-                    helperText: QuestionCoachingHint.text(for: category)
+                    helperText: coachingHint ?? QuestionCoachingHint.text(for: category)
                 )
 
-                if let sourceURL = URL(string: officialSourceURL), !officialSourceURL.isEmpty {
+                if let personalizedSourceLabel {
+                    Label(personalizedSourceLabel, systemImage: "point.bottomleft.forward.to.point.topright.scurvepath")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.cvStudioAccent)
+                        .accessibilityLabel("Personalized Skill Tree challenge")
+                } else if let sourceURL = URL(string: officialSourceURL), !officialSourceURL.isEmpty {
                     Link(destination: sourceURL) {
                         Label("Official company guide", systemImage: "checkmark.seal.fill")
                             .font(.caption.weight(.bold))
