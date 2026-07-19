@@ -1,67 +1,90 @@
 # CareerVivid Mobile MVP
 
-SwiftUI prototype for a lightweight B2C iOS companion app. It is designed as a fast validation build before committing to a full Firebase-backed iOS product.
+`CareerVividMobileMVP` is the SwiftUI iOS app for daily interview practice. It pairs the CareerVivid company-guide catalog with a role-aware Skill Tree, timed voice answers, editable transcription, Deep AI Analysis, and persisted report history.
 
-## MVP Scope
+![CareerVivid mobile voice practice with a personalized question, live transcript state, and a tap-to-stop recorder](../docs/screenshots/ios/personalized-challenge-recording.png)
 
-- Today: next actions, saved roles, match overview.
-- Capture: paste or share a job URL and save it to the mobile pipeline.
-- Practice: mobile-first mock interview entry point.
-- Resume: mobile resume list and editor using the same data shape as the CareerVivid web app.
+## What the app does
 
-The default build still uses local sample data so the MVP can run without sign-in. The resume layer now includes the Web-compatible schema, Firestore REST sync interface, and `tailorResume` callable function interface for AI actions.
+- **Home** keeps every completed report visible, along with a 13-week activity map, a score summary, strengths to retain, and one coaching focus.
+- **Skill Tree** asks for a role, experience level, existing skills, and a growth direction; it turns that profile into a role-specific challenge path.
+- **Mock Interview** presents company guides, topic filters, source links, quest progress, and six focused practice stages per company.
+- **Native spoken stages** cover recruiter, behavioral, values, and final-round responses with a native record → transcribe → review → analyze loop.
+- **Specialized web stages** send coding and system-design exercises to their purpose-built web workspaces.
 
-## Resume Sync Contract
+## The answer-to-report contract
 
-The mobile resume editor maps to the existing web database shape:
+1. The app loads company and stage questions from `mobileInterviewQuestions`; it does not substitute a generic fallback question.
+2. A user records a timed WAV response. Apple speech recognition may provide an on-device live draft when available.
+3. `mobileInterviewTranscribe` in `us-west1` returns a reviewable transcript and up to three immediate suggestions.
+4. The user can edit that text or record again before selecting **Send for Deep AI Analysis**.
+5. `mobileInterviewAnalyze` receives the exact question, company, stage, transcript, and duration, then returns a report with communication, confidence, relevance, strengths, and practice-next guidance.
+6. Every completed report is stored independently. A retry on the same question adds a report instead of replacing the earlier attempt.
 
 ```text
-users/{uid}/resumes/{resumeId}
+official company question
+        ↓
+tap to record → WAV capture → optional live draft
+        ↓
+Vivid transcription + suggestions → editable answer
+        ↓
+Deep AI Analysis → saved report → Home and quest progress
 ```
 
-Supported service actions:
+## Services and persistence
 
-- Load resumes from CareerVivid Firestore.
-- Create or update a resume using the same top-level fields as the web `ResumeData`.
-- Preserve the remote Firestore document id on the mobile model.
-- Call `tailorResume` with existing web actions: `analyze`, `tailor`, `refine`, `condense`, and `ats_inject`.
+| Concern | Current implementation |
+| --- | --- |
+| Interview questions | `mobileInterviewQuestions` in CareerVivid Cloud Functions (`us-west1`) |
+| Audio transcription | `mobileInterviewTranscribe` in CareerVivid Cloud Functions (`us-west1`) |
+| Report analysis | `mobileInterviewAnalyze` in CareerVivid Cloud Functions (`us-west1`) |
+| Live interview token | `mobileInterviewLiveToken` in CareerVivid Cloud Functions (`us-west1`) |
+| Company and Skill Tree progress | On-device stores; progress updates only after a score of 75 or higher |
+| Report history | Device cache plus authenticated remote report loading when available |
+| Authentication | Firebase-authenticated CareerVivid session when a user signs in |
 
-To use the live service, initialize `CareerVividRESTResumeService` with:
+The app presents the model experience as **Vivid**. Vendor/model configuration stays on the controlled backend rather than in the iOS client.
 
-```swift
-let service = CareerVividRESTResumeService(
-    config: CareerVividRESTConfig(
-        uid: "<firebase-user-id>",
-        idToken: "<firebase-id-token>"
-    )
-)
-```
+## Project layout
 
-Then inject it into `ResumeEditorStore(service:)`.
+| Path | Purpose |
+| --- | --- |
+| `App/` | App entry point and iOS configuration |
+| `Sources/CareerVividMobileMVP/InterviewDashboardView.swift` | Interview-first Home and saved report history |
+| `Sources/CareerVividMobileMVP/SkillTreeModels.swift` | Role families, skills, defaults, and challenge progress |
+| `Sources/CareerVividMobileMVP/SkillTreeView.swift` | Profile selection and visual challenge path |
+| `Sources/CareerVividMobileMVP/PracticeCatalogView.swift` | Mock Interview company-guide catalog and Company Quest entry points |
+| `Sources/CareerVividMobileMVP/QuestionMockInterviewView.swift` | Exact-question native practice flow and report handoff |
+| `Sources/CareerVividMobileMVP/QuestionAudioSession.swift` | Timed audio capture and Apple native speech draft support |
+| `Sources/CareerVividMobileMVP/InterviewPracticeService.swift` | Cloud Function calls, report cache, and quest progress |
 
-## Open The MVP
+## Open and run
 
 ```bash
-cd /Users/jiawenzhu/Developer/careervivid-release/ios/CareerVividMobileMVP
+cd /Users/jiawenzhu/Developer/careervivid-ios/CareerVividMobileMVP
 xcodegen generate
 open CareerVividMobileMVP.xcodeproj
 ```
 
-In Xcode, select the `CareerVividMobileMVP` scheme and run it on an iPhone simulator.
+Select `CareerVividMobileMVP` and an iPhone simulator in Xcode, then Run. The app targets iOS 17.0+.
 
-## Validation
-
-```bash
-cd /Users/jiawenzhu/Developer/careervivid-release/ios/CareerVividMobileMVP
-swiftc -parse-as-library -typecheck App/CareerVividMobileMVPApp.swift Sources/CareerVividMobileMVP/*.swift
-```
-
-With full Xcode installed and selected, run:
+### Terminal validation
 
 ```bash
-sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-xcodebuild -project CareerVividMobileMVP.xcodeproj -scheme CareerVividMobileMVP -destination 'platform=iOS Simulator,name=iPhone 16' build
+cd /Users/jiawenzhu/Developer/careervivid-ios/CareerVividMobileMVP
+xcodebuild -project CareerVividMobileMVP.xcodeproj \
+  -scheme CareerVividMobileMVP \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 swift test
 ```
 
-Current local limitation: this machine is selected to `/Library/Developer/CommandLineTools`, so `xcodebuild`, XCTest, and iOS Simulator are unavailable until full Xcode is installed and selected.
+If you use the Xcode 27 beta installed at `/Applications/Xcode-beta.app`, select it before the build:
+
+```bash
+sudo xcode-select --switch /Applications/Xcode-beta.app/Contents/Developer
+xcodebuild -version
+```
+
+## Product walkthrough
+
+See the repository-level [iOS experience guide](../docs/ios-mobile-experience.md) for the full documented journey, including Skill Tree setup, company catalog, recording, transcription, review suggestions, reports, and Company Quest progression.
