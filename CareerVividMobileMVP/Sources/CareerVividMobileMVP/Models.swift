@@ -267,7 +267,7 @@ public struct EditableResume: Identifiable, Equatable, Sendable {
 
 // MARK: - Practice Models
 
-public enum PracticeCategory: String, CaseIterable, Identifiable, Sendable {
+public enum PracticeCategory: String, CaseIterable, Identifiable, Sendable, Hashable {
     case behavioral   = "Behavioral"
     case systemDesign = "System Design"
     case technical    = "Technical"

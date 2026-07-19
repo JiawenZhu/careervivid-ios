@@ -3,7 +3,6 @@ import SwiftUI
 public struct CareerVividMobileMVPView: View {
     @StateObject private var authStore = AuthSessionStore()
     @State private var selectedTab: MobileTab = .home
-    @State private var jobs = SampleCareerVividData.jobs
 
     public init() {}
 
@@ -39,8 +38,8 @@ public struct CareerVividMobileMVPView: View {
         switch selectedTab {
         case .home:
             InterviewDashboardView()
-        case .jobs:
-            JobsView(jobs: $jobs)
+        case .skills:
+            SkillTreeView()
         case .practice:
             PracticeCatalogView()
         }
@@ -48,12 +47,12 @@ public struct CareerVividMobileMVPView: View {
 }
 
 private enum MobileTab: String, CaseIterable, Hashable {
-    case home, jobs, practice
+    case home, skills, practice
 
     var title: String {
         switch self {
         case .home: return "Home"
-        case .jobs: return "Jobs"
+        case .skills: return "Skills"
         case .practice: return "Mock"
         }
     }
@@ -61,7 +60,7 @@ private enum MobileTab: String, CaseIterable, Hashable {
     var systemImage: String {
         switch self {
         case .home: return "house.fill"
-        case .jobs: return "briefcase.fill"
+        case .skills: return "point.bottomleft.forward.to.point.topright.scurvepath"
         case .practice: return "mic.fill"
         }
     }

@@ -74,7 +74,7 @@ struct QuestionAnalysisScreen: View {
                     )
                     QuestionReportMetricCard(
                         title: "Answer relevance",
-                        detail: "Connection to this prompt",
+                        detail: "Connection to this question",
                         score: analysis.relevanceScore,
                         symbol: "scope"
                     )
@@ -152,8 +152,6 @@ struct QuestionReportGeneratingScreen: View {
 
     @State private var activeStep = 0
     @State private var completedThrough = -1
-    @State private var ringPhase = 0.0
-    @State private var ringBreathes = false
     @State private var hasStartedProgress = false
 
     private var theme: QuestionReportGenerationTheme {
@@ -184,12 +182,9 @@ struct QuestionReportGeneratingScreen: View {
             Spacer(minLength: 20)
 
             VStack(spacing: 22) {
-                QuestionReportGenerationRing(
+                QuestionReportAnalysisActivityControl(
                     symbol: theme.symbol,
-                    accessibilityLabel: theme.accessibilityLabel,
-                    phase: ringPhase,
-                    breathes: ringBreathes,
-                    reduceMotion: reduceMotion
+                    accessibilityLabel: theme.accessibilityLabel
                 )
 
                 VStack(spacing: 7) {
@@ -203,7 +198,14 @@ struct QuestionReportGeneratingScreen: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(.horizontal, 34)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 26)
+            .background(Color.cvQuestionPaper.opacity(0.88), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.cvQuestionBorder.opacity(0.82), lineWidth: 1)
+            )
+            .padding(.horizontal, 20)
 
             Spacer(minLength: 24)
 
@@ -231,13 +233,6 @@ struct QuestionReportGeneratingScreen: View {
             hasStartedProgress = true
 
             guard !reduceMotion else { return }
-            withAnimation(.linear(duration: 3.8).repeatForever(autoreverses: false)) {
-                ringPhase = 1
-            }
-            withAnimation(.easeInOut(duration: 1.35).repeatForever(autoreverses: true)) {
-                ringBreathes = true
-            }
-
             // Complete each row first, then move forward. This is deliberately
             // monotonic: a checked item never returns to the pending state.
             for step in 0..<(theme.steps.count - 1) {
@@ -272,50 +267,74 @@ private enum QuestionReportGenerationStepState: Equatable {
     case complete
 }
 
-private struct QuestionReportGenerationRing: View {
+private struct QuestionReportAnalysisActivityControl: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let symbol: String
     let accessibilityLabel: String
-    let phase: Double
-    let breathes: Bool
-    let reduceMotion: Bool
 
-    private let spectrum: [Color] = [
-        .cvQuestionSoftLavender,
-        .cvQuestionDashboardBlue.opacity(0.52),
-        .cvQuestionSuccess.opacity(0.52),
-        .cvQuestionWarning.opacity(0.54),
-        .cvQuestionSoftLavender,
+    private let arcColors: [Color] = [
+        .cvStudioAccent,
+        .cvQuestionDashboardBlue,
+        .cvQuestionSuccess,
+        .cvQuestionAmber
     ]
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.cvQuestionSoftLavender.opacity(0.62), lineWidth: 11)
-            Circle()
-                .trim(from: 0.045, to: 0.755)
-                .stroke(
-                    AngularGradient(colors: spectrum, center: .center),
-                    style: StrokeStyle(lineWidth: 11, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90 + (reduceMotion ? 0 : phase * 360)))
-            Circle()
-                .trim(from: 0.82, to: 0.95)
-                .stroke(
-                    Color.cvQuestionDashboardRose.opacity(0.40),
-                    style: StrokeStyle(lineWidth: 5, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90 - (reduceMotion ? 0 : phase * 360)))
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reduceMotion)) { context in
+            let time = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
+            let pulse = reduceMotion ? 0 : (sin(time * 3.1) + 1) / 2
 
-            Circle()
-                .fill(Color.cvQuestionPaper)
-                .frame(width: 66, height: 66)
-                .shadow(color: Color.cvQuestionSoftLavender.opacity(0.58), radius: 10, x: 0, y: 4)
-            Image(systemName: symbol)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(Color.cvQuestionLavenderText)
-                .scaleEffect(reduceMotion || !breathes ? 1 : 1.055)
+            ZStack {
+                Circle()
+                    .fill(Color.cvStudioAccentSoft.opacity(0.58))
+                    .frame(width: 150, height: 150)
+                    .scaleEffect(1 + pulse * 0.035)
+
+                ForEach(0..<arcColors.count, id: \.self) { index in
+                    Circle()
+                        .trim(from: 0.04, to: 0.19 + Double(index) * 0.025)
+                        .stroke(
+                            arcColors[index].opacity(index == 0 ? 0.92 : 0.72),
+                            style: StrokeStyle(lineWidth: index == 0 ? 9 : 6, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(
+                            Double(index) * 90 + time * (index.isMultiple(of: 2) ? 82 : -64)
+                        ))
+                }
+
+                Circle()
+                    .fill(Color.cvStudioAccentSoft)
+                    .frame(width: 122, height: 122)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.cvQuestionSoftLavender.opacity(0.92), lineWidth: 1)
+                    )
+
+                VStack(spacing: 8) {
+                    Image(systemName: symbol)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(Color.cvStudioAccent)
+                        .symbolEffect(.variableColor.iterative, options: .repeating, isActive: !reduceMotion)
+
+                    Text("Analyzing")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.cvStudioAccent)
+
+                    HStack(spacing: 4) {
+                        ForEach(0..<3, id: \.self) { index in
+                            Circle()
+                                .fill(arcColors[index])
+                                .frame(width: 5, height: 5)
+                                .offset(y: reduceMotion ? 0 : -3 * sin(time * 5 + Double(index) * 0.9))
+                        }
+                    }
+                    .frame(height: 8)
+                }
+            }
         }
-        .frame(width: 108, height: 108)
+        .frame(width: 172, height: 172)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
     }
 }
@@ -790,7 +809,7 @@ private struct QuestionTranscriptCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
-            Label("What we heard", systemImage: "text.bubble")
+            Label("Your response", systemImage: "text.bubble")
                 .font(.headline.weight(.bold))
                 .foregroundStyle(Color.cvQuestionInk)
             Text(answer)

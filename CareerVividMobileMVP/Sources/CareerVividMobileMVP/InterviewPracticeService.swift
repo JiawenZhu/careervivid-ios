@@ -379,7 +379,13 @@ struct InterviewReportSnapshot: Identifiable, Equatable, Sendable {
 enum LocalInterviewReportCache {
     private static let key = "cv_local_interview_reports_v1"
 
-    static func save(result: InterviewAnalysisResult, config: InterviewLiveConfig) {
+    static func save(
+        result: InterviewAnalysisResult,
+        config: InterviewLiveConfig,
+        stageTitle: String? = nil,
+        completedQuestionIndex: Int? = nil,
+        questionCount: Int = 0
+    ) {
         var reports = load()
         let snapshot = LocalInterviewReportSnapshot(
             jobTitle: config.job.title,
@@ -397,6 +403,13 @@ enum LocalInterviewReportCache {
 
         guard let data = try? JSONEncoder().encode(reports) else { return }
         UserDefaults.standard.set(data, forKey: key)
+        CompanyQuestProgressStore.record(
+            company: config.job.company,
+            stageTitle: stageTitle,
+            score: result.overallScore,
+            completedQuestionIndex: completedQuestionIndex,
+            questionCount: questionCount
+        )
     }
 
     static func load() -> [LocalInterviewReportSnapshot] {
@@ -407,6 +420,134 @@ enum LocalInterviewReportCache {
             return []
         }
         return reports
+    }
+}
+
+/// Lightweight, on-device quest progress for the mobile company catalog. A
+/// stage is cleared only after a score of 75 or higher, matching the quest's
+/// visible pass threshold. Individual report history remains in its existing
+/// cache; this aggregate keeps the catalog fast and concise.
+struct CompanyQuestProgress: Codable, Equatable, Sendable {
+    var attempts = 0
+    var bestScore = 0
+    var attemptedStageIDs: Set<String> = []
+    var clearedStageIDs: Set<String> = []
+    var attemptsByStageID: [String: Int] = [:]
+    var bestScoreByStageID: [String: Int] = [:]
+    var nextQuestionIndexByStageID: [String: Int] = [:]
+
+    private enum CodingKeys: String, CodingKey {
+        case attempts, bestScore, attemptedStageIDs, clearedStageIDs
+        case attemptsByStageID, bestScoreByStageID, nextQuestionIndexByStageID
+    }
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        attempts = try container.decodeIfPresent(Int.self, forKey: .attempts) ?? 0
+        bestScore = try container.decodeIfPresent(Int.self, forKey: .bestScore) ?? 0
+        attemptedStageIDs = try container.decodeIfPresent(Set<String>.self, forKey: .attemptedStageIDs) ?? []
+        clearedStageIDs = try container.decodeIfPresent(Set<String>.self, forKey: .clearedStageIDs) ?? []
+        attemptsByStageID = try container.decodeIfPresent([String: Int].self, forKey: .attemptsByStageID) ?? [:]
+        bestScoreByStageID = try container.decodeIfPresent([String: Int].self, forKey: .bestScoreByStageID) ?? [:]
+        nextQuestionIndexByStageID = try container.decodeIfPresent([String: Int].self, forKey: .nextQuestionIndexByStageID) ?? [:]
+    }
+
+    func hasAttempted(_ stageID: String) -> Bool {
+        attemptedStageIDs.contains(stageID)
+    }
+
+    func hasCleared(_ stageID: String) -> Bool {
+        clearedStageIDs.contains(stageID)
+    }
+
+    func attempts(for stageID: String) -> Int {
+        attemptsByStageID[stageID] ?? 0
+    }
+
+    func bestScore(for stageID: String) -> Int? {
+        bestScoreByStageID[stageID]
+    }
+}
+
+enum CompanyQuestProgressStore {
+    private static let key = "cv_company_quest_progress_v1"
+    private static let stageIDsByTitle = [
+        "recruiter screen": "recruiter",
+        "coding round": "coding",
+        "system design": "system-design",
+        "behavioral round": "behavioral",
+        "values round": "values",
+        "final round": "final",
+    ]
+
+    static func all() -> [String: CompanyQuestProgress] {
+        guard
+            let data = UserDefaults.standard.data(forKey: key),
+            let progress = try? JSONDecoder().decode([String: CompanyQuestProgress].self, from: data)
+        else {
+            return [:]
+        }
+        return progress
+    }
+
+    static func companyKey(for company: String) -> String {
+        company.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    static func progress(for company: String) -> CompanyQuestProgress {
+        all()[companyKey(for: company)] ?? CompanyQuestProgress()
+    }
+
+    static func nextQuestionIndex(company: String, stageTitle: String?, questionCount: Int) -> Int {
+        guard
+            questionCount > 0,
+            let stageID = stageID(for: stageTitle)
+        else {
+            return 0
+        }
+        return min(progress(for: company).nextQuestionIndexByStageID[stageID] ?? 0, questionCount - 1)
+    }
+
+    static func record(
+        company: String,
+        stageTitle: String?,
+        score: Int,
+        completedQuestionIndex: Int? = nil,
+        questionCount: Int = 0
+    ) {
+        guard
+            let stageID = stageID(for: stageTitle)
+        else {
+            return
+        }
+
+        var progressByCompany = all()
+        let companyKey = companyKey(for: company)
+        var progress = progressByCompany[companyKey] ?? CompanyQuestProgress()
+        progress.attempts += 1
+        progress.bestScore = max(progress.bestScore, score)
+        progress.attemptedStageIDs.insert(stageID)
+        progress.attemptsByStageID[stageID, default: 0] += 1
+        progress.bestScoreByStageID[stageID] = max(progress.bestScoreByStageID[stageID] ?? 0, score)
+        if let completedQuestionIndex, questionCount > 0 {
+            progress.nextQuestionIndexByStageID[stageID] = (completedQuestionIndex + 1) % questionCount
+        }
+        if score >= 75 {
+            progress.clearedStageIDs.insert(stageID)
+        }
+        progressByCompany[companyKey] = progress
+
+        guard let data = try? JSONEncoder().encode(progressByCompany) else { return }
+        UserDefaults.standard.set(data, forKey: key)
+    }
+
+    private static func stageID(for stageTitle: String?) -> String? {
+        guard let normalizedTitle = stageTitle?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() else {
+            return nil
+        }
+        return stageIDsByTitle[normalizedTitle]
     }
 }
 

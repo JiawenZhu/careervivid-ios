@@ -13,6 +13,8 @@ struct PracticeView: View {
     @State private var selectedCategory: PracticeCategory
     @State private var stageTitle: String?
     private let guideSlug: String?
+    private let personalizedContent: PersonalizedPracticeContent?
+    private let skillTreeProgressID: String?
     @State private var questions: [String] = []
     @State private var officialSourceURL = ""
     @State private var isLoadingQuestions = true
@@ -31,12 +33,16 @@ struct PracticeView: View {
         initialJob: JobLead = SampleCareerVividData.jobs[0],
         initialCategory: PracticeCategory = .behavioral,
         initialStageTitle: String? = nil,
-        guideSlug: String? = nil
+        guideSlug: String? = nil,
+        personalizedContent: PersonalizedPracticeContent? = nil,
+        skillTreeProgressID: String? = nil
     ) {
         _selectedJob = State(initialValue: initialJob)
         _selectedCategory = State(initialValue: initialCategory)
         _stageTitle = State(initialValue: initialStageTitle)
         self.guideSlug = guideSlug
+        self.personalizedContent = personalizedContent
+        self.skillTreeProgressID = skillTreeProgressID
     }
 
     var body: some View {
@@ -98,6 +104,8 @@ struct PracticeView: View {
                     questionCount: questions.count,
                     question: activeQuestion,
                     officialSourceURL: officialSourceURL,
+                    personalizedSourceLabel: personalizedContent?.sourceLabel,
+                    coachingHint: personalizedContent?.coachingHint,
                     session: answerSession,
                     isAnalyzing: isAnalyzing,
                     isVividTranscribing: isVividTranscribing,
@@ -130,7 +138,8 @@ struct PracticeView: View {
     }
 
     private var websiteStage: QuestionWebQuestStage? {
-        QuestionWebQuestStage.resolve(stageTitle: stageTitle, category: selectedCategory)
+        guard personalizedContent == nil else { return nil }
+        return QuestionWebQuestStage.resolve(stageTitle: stageTitle, category: selectedCategory)
     }
 
     private var questionCatalogRequestKey: String {
@@ -178,6 +187,16 @@ struct PracticeView: View {
     }
 
     private func loadOfficialQuestions() async {
+        if let personalizedContent {
+            questions = personalizedContent.questions
+            officialSourceURL = ""
+            questionIndex = 0
+            questionLoadError = nil
+            errorMessage = nil
+            isLoadingQuestions = false
+            return
+        }
+
         guard let guideSlug, !guideSlug.isEmpty else {
             isLoadingQuestions = false
             questionLoadError = "Choose a company guide to load its official interview questions."
@@ -201,7 +220,11 @@ struct PracticeView: View {
             }
             questions = officialQuestions
             officialSourceURL = response.sourceURL
-            questionIndex = min(questionIndex, max(officialQuestions.count - 1, 0))
+            questionIndex = CompanyQuestProgressStore.nextQuestionIndex(
+                company: selectedJob.company,
+                stageTitle: stageTitle,
+                questionCount: officialQuestions.count
+            )
         } catch {
             questions = []
             officialSourceURL = ""
@@ -290,7 +313,16 @@ struct PracticeView: View {
                     transcript: transcript,
                     durationInSeconds: max(duration, 1)
                 )
-                LocalInterviewReportCache.save(result: result, config: config)
+                LocalInterviewReportCache.save(
+                    result: result,
+                    config: config,
+                    stageTitle: stageTitle,
+                    completedQuestionIndex: questionIndex,
+                    questionCount: questions.count
+                )
+                if let skillTreeProgressID {
+                    SkillTreeChallengeProgressStore.record(id: skillTreeProgressID, score: result.overallScore)
+                }
                 analysis = result
                 QuestionHaptic.play(.medium)
             } catch {
@@ -410,24 +442,7 @@ enum QuestionFollowUp {
 
 struct QuestionPracticeGrid: View {
     var body: some View {
-        GeometryReader { proxy in
-            Canvas { context, size in
-                let spacing: CGFloat = 34
-                var path = Path()
-                for x in stride(from: 0, through: size.width, by: spacing) {
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: size.height))
-                }
-                for y in stride(from: 0, through: size.height, by: spacing) {
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-                }
-                context.stroke(path, with: .color(Color.cvQuestionGrid), lineWidth: 1)
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height)
-        }
-        .background(Color.cvQuestionBackground)
-        .ignoresSafeArea()
+        Color.cvAppBackground.ignoresSafeArea()
     }
 }
 
