@@ -16,7 +16,7 @@ jobs:
       - name: Build iOS app
         run: >-
           xcodebuild
-          -project CareerVividMobileMVP/CareerVividMobileMVP.xcodeproj
+          -project CareerVividMobileMVP.xcodeproj
           -scheme CareerVividMobileMVP
           -configuration Debug
           -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'

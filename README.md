@@ -4,7 +4,7 @@
 
 ### Turn real interview practice into a daily, visible path to a stronger next role.
 
-[Open CareerVivid](https://careervivid.app) · [Read the iOS experience guide](docs/ios-mobile-experience.md) · [Open the mobile app](CareerVividMobileMVP/README.md)
+[Open Vivid](https://careervivid.app) · [Read the iOS experience guide](docs/ios-mobile-experience.md)
 
 </div>
 
@@ -75,18 +75,20 @@ saved report → Home insights → next focused challenge
 
 | Path | Purpose |
 | --- | --- |
-| [CareerVividMobileMVP/](CareerVividMobileMVP/) | CareerVivid interview-practice iOS application |
-| [CareerVividMobileMVP/README.md](CareerVividMobileMVP/README.md) | App-specific setup, services, and validation |
+| [App/](App/) | App entry point and iOS launch configuration |
+| [Sources/](Sources/) | Swift source code of the Vivid app |
+| [Tests/](Tests/) | Swift test target files |
+| [project.yml](project.yml) | XcodeGen specification file |
 | [docs/ios-mobile-experience.md](docs/ios-mobile-experience.md) | Complete annotated iOS product walkthrough |
 | [docs/screenshots/ios/](docs/screenshots/ios/) | Screen evidence used by this README and the experience guide |
-| `GreenCardInterviewMVP/` | Separate green card interview prototype |
-| `VisaInterviewPrepMVP/` | Separate visa interview preparation prototype |
 
-## Run CareerVividMobileMVP locally
+> The earlier `GreenCardInterviewMVP` and `VisaInterviewPrepMVP` prototypes now live in their own repository: [JiawenZhu/interview-mvp-apps](https://github.com/JiawenZhu/interview-mvp-apps).
+
+## Run Vivid locally
 
 ```bash
 git clone https://github.com/JiawenZhu/careervivid-ios.git
-cd careervivid-ios/CareerVividMobileMVP
+cd careervivid-ios
 xcodegen generate
 open CareerVividMobileMVP.xcodeproj
 ```
