@@ -14,26 +14,72 @@ enum CVHapticStyle {
 func cvImpactHaptic(_ style: CVHapticStyle) {}
 #endif
 
+// MARK: - Dynamic Color Helper
+extension Color {
+    static func cvDynamic(light: Color, dark: Color) -> Color {
+        #if os(iOS)
+        return Color(UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+        })
+        #else
+        return light
+        #endif
+    }
+}
+
 // MARK: - Brand Colors
 extension Color {
     // Dimensional orange palette from Design/careervivid-mobile-reference-design.json.
     static let cvBrand      = Color(red: 1.000, green: 0.420, blue: 0.086)  // #FF6B16
-    static let cvBrandSoft  = Color(red: 1.000, green: 0.941, blue: 0.898)  // #FFF0E5
-    static let cvBrandSofter = Color(red: 1.000, green: 0.969, blue: 0.941) // #FFF7F0
+    static let cvBrandSoft  = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.941, blue: 0.898), // #FFF0E5
+        dark: Color(red: 0.180, green: 0.094, blue: 0.047)
+    )
+    static let cvBrandSofter = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.969, blue: 0.941), // #FFF7F0
+        dark: Color(red: 0.141, green: 0.063, blue: 0.024)
+    )
     static let cvBrandWarm  = Color(red: 1.000, green: 0.608, blue: 0.239)  // #FF9B3D
     static let cvBrandDeep  = Color(red: 0.918, green: 0.325, blue: 0.000)  // #EA5300
     static let cvSelectedBorder = Color(red: 1.000, green: 0.718, blue: 0.529)
 
-    static let cvAppBackground = Color(red: 0.965, green: 0.965, blue: 0.973) // #F6F6F8
-    static let cvSurface = Color.white
-    static let cvSurfaceWarm = Color(red: 1.000, green: 0.973, blue: 0.953)
-    static let cvSurfaceCool = Color(red: 0.953, green: 0.965, blue: 1.000)
-    static let cvPressedSurface = Color(red: 0.945, green: 0.945, blue: 0.957)
-    static let cvHairline = Color(red: 0.906, green: 0.906, blue: 0.922)
+    static let cvAppBackground = Color.cvDynamic(
+        light: Color(red: 0.965, green: 0.965, blue: 0.973), // #F6F6F8
+        dark: Color(red: 0.071, green: 0.071, blue: 0.078)
+    )
+    static let cvSurface = Color.cvDynamic(
+        light: Color.white,
+        dark: Color(red: 0.110, green: 0.110, blue: 0.118)
+    )
+    static let cvSurfaceWarm = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.973, blue: 0.953),
+        dark: Color(red: 0.145, green: 0.133, blue: 0.125)
+    )
+    static let cvSurfaceCool = Color.cvDynamic(
+        light: Color(red: 0.953, green: 0.965, blue: 1.000),
+        dark: Color(red: 0.102, green: 0.114, blue: 0.141)
+    )
+    static let cvPressedSurface = Color.cvDynamic(
+        light: Color(red: 0.945, green: 0.945, blue: 0.957),
+        dark: Color(red: 0.173, green: 0.173, blue: 0.180)
+    )
+    static let cvHairline = Color.cvDynamic(
+        light: Color(red: 0.906, green: 0.906, blue: 0.922),
+        dark: Color(red: 0.173, green: 0.173, blue: 0.180)
+    )
 
-    static let cvInk = Color(red: 0.067, green: 0.067, blue: 0.078)
-    static let cvInkSecondary = Color(red: 0.443, green: 0.443, blue: 0.478)
-    static let cvInkTertiary = Color(red: 0.608, green: 0.608, blue: 0.639)
+    static let cvInk = Color.cvDynamic(
+        light: Color(red: 0.067, green: 0.067, blue: 0.078),
+        dark: Color.white
+    )
+    static let cvInkSecondary = Color.cvDynamic(
+        light: Color(red: 0.443, green: 0.443, blue: 0.478),
+        dark: Color(red: 0.608, green: 0.608, blue: 0.639)
+    )
+    static let cvInkTertiary = Color.cvDynamic(
+        light: Color(red: 0.608, green: 0.608, blue: 0.639),
+        dark: Color(red: 0.443, green: 0.443, blue: 0.478)
+    )
 
     static let cvBlue = Color(red: 0.176, green: 0.612, blue: 1.000)
     static let cvBlueSoft = Color(red: 0.918, green: 0.961, blue: 1.000)
@@ -219,7 +265,7 @@ struct CVCardModifier: ViewModifier {
             .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .stroke(.white.opacity(0.85), lineWidth: 1)
+                    .stroke(Color.cvDynamic(light: .white.opacity(0.85), dark: Color.cvHairline.opacity(0.35)), lineWidth: 1)
             )
             .shadow(
                 color: .black.opacity(isRaised ? 0.09 : 0.055),
@@ -390,7 +436,7 @@ struct StatTile: View {
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(.white.opacity(0.85), lineWidth: 1)
+                .stroke(Color.cvDynamic(light: .white.opacity(0.85), dark: Color.cvHairline.opacity(0.35)), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.055), radius: 18, x: 0, y: 8)
     }
