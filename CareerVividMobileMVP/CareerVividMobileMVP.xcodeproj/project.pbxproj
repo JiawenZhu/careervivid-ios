@@ -10,34 +10,35 @@
 		0B5B75A89644C2ACBCDAEC43 /* LiveInterviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CE6E27704CDD236636930F /* LiveInterviewSession.swift */; };
 		0B9A14D8FF652E694304FAFE /* PracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 907826C65F411F58A062421C /* PracticeView.swift */; };
 		100BBC88D2BB7F4F660E2C0B /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B1FFDB992817C531445345 /* CaptureView.swift */; };
+		131D017F683FFD4587156512 /* QuestionAnswerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E91C142A6B3F3ED0C227C9 /* QuestionAnswerViews.swift */; };
 		1F96ABB9F439128A9A5FC65C /* ResumePDFExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C87EA058013CB5B691E4D227 /* ResumePDFExport.swift */; };
 		213AEE51B032EFF24C19B345 /* InterviewDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F207EE5312EB03F89B87E1 /* InterviewDashboardView.swift */; };
-		2A71A9B7718C4E8B8B2A1F11 /* SkillTreeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A71A9B7718C4E8B8B2A1F12 /* SkillTreeModels.swift */; };
-		2A71A9B7718C4E8B8B2A1F21 /* SkillTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A71A9B7718C4E8B8B2A1F22 /* SkillTreeView.swift */; };
 		2EEA06B0EFDCDD91DA3FA8B4 /* PracticeCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE780F8075FE29F4D0EBC7B /* PracticeCatalogView.swift */; };
 		38F3970BEF54203A067ECCCC /* ResumeCoachSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CF46071415B828192726F25 /* ResumeCoachSession.swift */; };
 		3940DF499DDFCAD796C73478 /* CareerVividMobileMVPApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3420853062C88F09AC9227B /* CareerVividMobileMVPApp.swift */; };
+		4A4C0B4F00E6E6C4D792EDB0 /* QuestionWebQuestViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46ACA99290FE1F5374ACC0B0 /* QuestionWebQuestViews.swift */; };
 		5E998DEF22312D0C9FE9D0F2 /* CVFirebaseAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCB6F9ED19E2D5DD542EEF59 /* CVFirebaseAuth.swift */; };
 		5EBF7907F5AED4759FB16425 /* CareerVividMobileMVPView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7F4BB5D048308558B079A6 /* CareerVividMobileMVPView.swift */; };
 		697B664E83641F7EB5A18090 /* ResumeEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F802E9D5C548F5874A98E0 /* ResumeEditorStore.swift */; };
 		69A982094382D7317065C0DA /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861DBAD3DADD23EF3AF985AE /* DesignTokens.swift */; };
+		73EAAC4A6645EEC3D8BAAE68 /* SkillTreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F114717AD1CAB84C8260C8F /* SkillTreeView.swift */; };
 		79F7BCF937B5FC1F8CFCD4C1 /* QuestionMockInterviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EECFAAADDE72C5A182EC424 /* QuestionMockInterviewView.swift */; };
 		7EA2C35EE9F98D25C24ADB64 /* GoogleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1DB724F05EDBD81DC1932D /* GoogleSignInService.swift */; };
 		84CA8AFE270EF0356E1D4DBF /* WebsiteResumeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE7E6AF2868647495B91D10 /* WebsiteResumeModels.swift */; };
 		850AEC14D4845413D8F91ABF /* ResumeMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C4EFAC83F0CBD52C22242D /* ResumeMapping.swift */; };
+		892808AAB8BC9B5EF2C4EC6C /* PracticeLiveViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DB45147BD211FDB3718D22D /* PracticeLiveViews.swift */; };
 		957A4DCD220677E40A16D8E1 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3113AFC2740693CDD6EA3DB /* AuthView.swift */; };
 		9BE5C78D3E250BAC34652C0C /* ResumeSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B834B9A258EFECE28DFEF2A /* ResumeSyncService.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A11 /* QuestionWebQuestViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A12 /* QuestionWebQuestViews.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A21 /* QuestionAnswerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A22 /* QuestionAnswerViews.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A31 /* QuestionReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A32 /* QuestionReportViews.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A41 /* QuestionAudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A42 /* QuestionAudioSession.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A51 /* PracticeSetupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A52 /* PracticeSetupViews.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A61 /* PracticeLiveViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A62 /* PracticeLiveViews.swift */; };
-		A7F2D71B4E8C4D7E9B1C0A71 /* PracticeReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F2D71B4E8C4D7E9B1C0A72 /* PracticeReportViews.swift */; };
+		B0CE967E6D4EDCBB7C66DC41 /* SkillTreeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D16A90488A1E931DCAAAF81 /* SkillTreeModels.swift */; };
 		B618ED9849494EA9EAF646B3 /* ResumeCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1BBBF632C42177BC22DC238 /* ResumeCoachView.swift */; };
+		C1538F20DCB93847388E883B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6F5CA4AAED1C8E3B23AC6705 /* Assets.xcassets */; };
 		C5271EB746E08312358A32AF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0D536B1234DABD6FE033EF /* Models.swift */; };
+		C8DD2972F24C41E963FC9E13 /* QuestionAudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48676B3D20063A44F2AA703F /* QuestionAudioSession.swift */; };
+		C99775BDA27587880D9FC597 /* PracticeSetupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D8E5ADCD00F2E114AA06C9A /* PracticeSetupViews.swift */; };
 		CD97BC4F1F5D8E8F6A30C5CB /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CD03501E19F68498C64F30 /* Components.swift */; };
 		D031696CF82EA22585B87793 /* ResumeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B769AB01E86867AB044F692E /* ResumeView.swift */; };
+		DF956CC97AA5DCA1F853359D /* PracticeReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25260524EE5F488D6236A1F /* PracticeReportViews.swift */; };
+		DFA4261815FCC32CB679CBBF /* QuestionReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF27791F0AFE229664D0B00A /* QuestionReportViews.swift */; };
 		E5259900EF1C29478910D51D /* InterviewPracticeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9326E9BC9015DDB24C392A3B /* InterviewPracticeService.swift */; };
 		E59E6B791CAB89A7BBCB67C6 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B8DF510F9AC95BB1AD1FDC8 /* TodayView.swift */; };
 		F3A7F4DFC8357AC144356D3A /* AuthSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2E03B5E9845D0E3B563FA7 /* AuthSessionStore.swift */; };
@@ -47,39 +48,40 @@
 /* Begin PBXFileReference section */
 		0801697E587B0C53B1ED3B53 /* MobileInterviewGuideCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileInterviewGuideCatalog.swift; sourceTree = "<group>"; };
 		0B834B9A258EFECE28DFEF2A /* ResumeSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeSyncService.swift; sourceTree = "<group>"; };
+		0D8E5ADCD00F2E114AA06C9A /* PracticeSetupViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeSetupViews.swift; sourceTree = "<group>"; };
 		21F802E9D5C548F5874A98E0 /* ResumeEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeEditorStore.swift; sourceTree = "<group>"; };
 		23FC56C7EC02C058B807D9CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		2A71A9B7718C4E8B8B2A1F12 /* SkillTreeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeModels.swift; sourceTree = "<group>"; };
-		2A71A9B7718C4E8B8B2A1F22 /* SkillTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeView.swift; sourceTree = "<group>"; };
+		2DB45147BD211FDB3718D22D /* PracticeLiveViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeLiveViews.swift; sourceTree = "<group>"; };
 		3B8DF510F9AC95BB1AD1FDC8 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		3CF46071415B828192726F25 /* ResumeCoachSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeCoachSession.swift; sourceTree = "<group>"; };
 		3FE7E6AF2868647495B91D10 /* WebsiteResumeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteResumeModels.swift; sourceTree = "<group>"; };
+		46ACA99290FE1F5374ACC0B0 /* QuestionWebQuestViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionWebQuestViews.swift; sourceTree = "<group>"; };
 		47C4EFAC83F0CBD52C22242D /* ResumeMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeMapping.swift; sourceTree = "<group>"; };
+		48676B3D20063A44F2AA703F /* QuestionAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionAudioSession.swift; sourceTree = "<group>"; };
 		5EECFAAADDE72C5A182EC424 /* QuestionMockInterviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionMockInterviewView.swift; sourceTree = "<group>"; };
 		67CE6E27704CDD236636930F /* LiveInterviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveInterviewSession.swift; sourceTree = "<group>"; };
 		6D1DB724F05EDBD81DC1932D /* GoogleSignInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleSignInService.swift; sourceTree = "<group>"; };
 		6F2E03B5E9845D0E3B563FA7 /* AuthSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSessionStore.swift; sourceTree = "<group>"; };
+		6F5CA4AAED1C8E3B23AC6705 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7D16A90488A1E931DCAAAF81 /* SkillTreeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeModels.swift; sourceTree = "<group>"; };
 		7F0D536B1234DABD6FE033EF /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		861DBAD3DADD23EF3AF985AE /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		86F207EE5312EB03F89B87E1 /* InterviewDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterviewDashboardView.swift; sourceTree = "<group>"; };
 		87CD03501E19F68498C64F30 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		8B7F4BB5D048308558B079A6 /* CareerVividMobileMVPView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPView.swift; sourceTree = "<group>"; };
+		8F114717AD1CAB84C8260C8F /* SkillTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeView.swift; sourceTree = "<group>"; };
 		907826C65F411F58A062421C /* PracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeView.swift; sourceTree = "<group>"; };
-		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9326E9BC9015DDB24C392A3B /* InterviewPracticeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterviewPracticeService.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A12 /* QuestionWebQuestViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionWebQuestViews.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A22 /* QuestionAnswerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionAnswerViews.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A32 /* QuestionReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionReportViews.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A42 /* QuestionAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionAudioSession.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A52 /* PracticeSetupViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeSetupViews.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A62 /* PracticeLiveViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeLiveViews.swift; sourceTree = "<group>"; };
-		A7F2D71B4E8C4D7E9B1C0A72 /* PracticeReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeReportViews.swift; sourceTree = "<group>"; };
 		B3420853062C88F09AC9227B /* CareerVividMobileMVPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPApp.swift; sourceTree = "<group>"; };
 		B769AB01E86867AB044F692E /* ResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeView.swift; sourceTree = "<group>"; };
+		C4E91C142A6B3F3ED0C227C9 /* QuestionAnswerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionAnswerViews.swift; sourceTree = "<group>"; };
 		C87EA058013CB5B691E4D227 /* ResumePDFExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumePDFExport.swift; sourceTree = "<group>"; };
 		D1BBBF632C42177BC22DC238 /* ResumeCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeCoachView.swift; sourceTree = "<group>"; };
 		D5B1FFDB992817C531445345 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
 		DCB6F9ED19E2D5DD542EEF59 /* CVFirebaseAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CVFirebaseAuth.swift; sourceTree = "<group>"; };
+		E25260524EE5F488D6236A1F /* PracticeReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeReportViews.swift; sourceTree = "<group>"; };
+		EF27791F0AFE229664D0B00A /* QuestionReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionReportViews.swift; sourceTree = "<group>"; };
 		F3113AFC2740693CDD6EA3DB /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		FBE780F8075FE29F4D0EBC7B /* PracticeCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeCatalogView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -88,6 +90,7 @@
 		3ADCECBCC0D639DE2A5970BF /* App */ = {
 			isa = PBXGroup;
 			children = (
+				6F5CA4AAED1C8E3B23AC6705 /* Assets.xcassets */,
 				B3420853062C88F09AC9227B /* CareerVividMobileMVPApp.swift */,
 				23FC56C7EC02C058B807D9CB /* Info.plist */,
 			);
@@ -128,15 +131,15 @@
 				0801697E587B0C53B1ED3B53 /* MobileInterviewGuideCatalog.swift */,
 				7F0D536B1234DABD6FE033EF /* Models.swift */,
 				FBE780F8075FE29F4D0EBC7B /* PracticeCatalogView.swift */,
+				2DB45147BD211FDB3718D22D /* PracticeLiveViews.swift */,
+				E25260524EE5F488D6236A1F /* PracticeReportViews.swift */,
+				0D8E5ADCD00F2E114AA06C9A /* PracticeSetupViews.swift */,
 				907826C65F411F58A062421C /* PracticeView.swift */,
+				C4E91C142A6B3F3ED0C227C9 /* QuestionAnswerViews.swift */,
+				48676B3D20063A44F2AA703F /* QuestionAudioSession.swift */,
 				5EECFAAADDE72C5A182EC424 /* QuestionMockInterviewView.swift */,
-				A7F2D71B4E8C4D7E9B1C0A12 /* QuestionWebQuestViews.swift */,
-				A7F2D71B4E8C4D7E9B1C0A22 /* QuestionAnswerViews.swift */,
-				A7F2D71B4E8C4D7E9B1C0A32 /* QuestionReportViews.swift */,
-				A7F2D71B4E8C4D7E9B1C0A42 /* QuestionAudioSession.swift */,
-				A7F2D71B4E8C4D7E9B1C0A52 /* PracticeSetupViews.swift */,
-				A7F2D71B4E8C4D7E9B1C0A62 /* PracticeLiveViews.swift */,
-				A7F2D71B4E8C4D7E9B1C0A72 /* PracticeReportViews.swift */,
+				EF27791F0AFE229664D0B00A /* QuestionReportViews.swift */,
+				46ACA99290FE1F5374ACC0B0 /* QuestionWebQuestViews.swift */,
 				3CF46071415B828192726F25 /* ResumeCoachSession.swift */,
 				D1BBBF632C42177BC22DC238 /* ResumeCoachView.swift */,
 				21F802E9D5C548F5874A98E0 /* ResumeEditorStore.swift */,
@@ -144,8 +147,8 @@
 				C87EA058013CB5B691E4D227 /* ResumePDFExport.swift */,
 				0B834B9A258EFECE28DFEF2A /* ResumeSyncService.swift */,
 				B769AB01E86867AB044F692E /* ResumeView.swift */,
-				2A71A9B7718C4E8B8B2A1F12 /* SkillTreeModels.swift */,
-				2A71A9B7718C4E8B8B2A1F22 /* SkillTreeView.swift */,
+				7D16A90488A1E931DCAAAF81 /* SkillTreeModels.swift */,
+				8F114717AD1CAB84C8260C8F /* SkillTreeView.swift */,
 				3B8DF510F9AC95BB1AD1FDC8 /* TodayView.swift */,
 				3FE7E6AF2868647495B91D10 /* WebsiteResumeModels.swift */,
 			);
@@ -161,6 +164,7 @@
 			buildConfigurationList = 79111FC6FDB7A873D7E808A7 /* Build configuration list for PBXNativeTarget "CareerVividMobileMVP" */;
 			buildPhases = (
 				2164A65D7CE27FD66E9E3034 /* Sources */,
+				DD06886E742E3A9FC40B80AA /* Resources */,
 			);
 			buildRules = (
 			);
@@ -180,7 +184,9 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 5D3B262B0BFF6538A74C5E10 /* Build configuration list for PBXProject "CareerVividMobileMVP" */;
 			developmentRegion = en;
@@ -200,6 +206,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DD06886E742E3A9FC40B80AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1538F20DCB93847388E883B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2164A65D7CE27FD66E9E3034 /* Sources */ = {
@@ -221,15 +238,15 @@
 				FDC7CBE1B935666F4EE193B6 /* MobileInterviewGuideCatalog.swift in Sources */,
 				C5271EB746E08312358A32AF /* Models.swift in Sources */,
 				2EEA06B0EFDCDD91DA3FA8B4 /* PracticeCatalogView.swift in Sources */,
+				892808AAB8BC9B5EF2C4EC6C /* PracticeLiveViews.swift in Sources */,
+				DF956CC97AA5DCA1F853359D /* PracticeReportViews.swift in Sources */,
+				C99775BDA27587880D9FC597 /* PracticeSetupViews.swift in Sources */,
 				0B9A14D8FF652E694304FAFE /* PracticeView.swift in Sources */,
+				131D017F683FFD4587156512 /* QuestionAnswerViews.swift in Sources */,
+				C8DD2972F24C41E963FC9E13 /* QuestionAudioSession.swift in Sources */,
 				79F7BCF937B5FC1F8CFCD4C1 /* QuestionMockInterviewView.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A11 /* QuestionWebQuestViews.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A21 /* QuestionAnswerViews.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A31 /* QuestionReportViews.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A41 /* QuestionAudioSession.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A51 /* PracticeSetupViews.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A61 /* PracticeLiveViews.swift in Sources */,
-				A7F2D71B4E8C4D7E9B1C0A71 /* PracticeReportViews.swift in Sources */,
+				DFA4261815FCC32CB679CBBF /* QuestionReportViews.swift in Sources */,
+				4A4C0B4F00E6E6C4D792EDB0 /* QuestionWebQuestViews.swift in Sources */,
 				38F3970BEF54203A067ECCCC /* ResumeCoachSession.swift in Sources */,
 				B618ED9849494EA9EAF646B3 /* ResumeCoachView.swift in Sources */,
 				697B664E83641F7EB5A18090 /* ResumeEditorStore.swift in Sources */,
@@ -237,8 +254,8 @@
 				1F96ABB9F439128A9A5FC65C /* ResumePDFExport.swift in Sources */,
 				9BE5C78D3E250BAC34652C0C /* ResumeSyncService.swift in Sources */,
 				D031696CF82EA22585B87793 /* ResumeView.swift in Sources */,
-				2A71A9B7718C4E8B8B2A1F11 /* SkillTreeModels.swift in Sources */,
-				2A71A9B7718C4E8B8B2A1F21 /* SkillTreeView.swift in Sources */,
+				B0CE967E6D4EDCBB7C66DC41 /* SkillTreeModels.swift in Sources */,
+				73EAAC4A6645EEC3D8BAAE68 /* SkillTreeView.swift in Sources */,
 				E59E6B791CAB89A7BBCB67C6 /* TodayView.swift in Sources */,
 				84CA8AFE270EF0356E1D4DBF /* WebsiteResumeModels.swift in Sources */,
 			);
@@ -251,18 +268,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CareerVivid;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CareerVivid uses the microphone to transcribe your mock interview answers.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "CareerVivid uses speech recognition to turn your mock interview answers into feedback.";
-				INFOPLIST_KEY_UILaunchStoryboardName = "";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CareerVivid uses the microphone to turn spoken resume notes into editable resume drafts.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "CareerVivid uses speech recognition to show your resume coach answers in real time.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -277,18 +290,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CareerVivid;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CareerVivid uses the microphone to transcribe your mock interview answers.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "CareerVivid uses speech recognition to turn your mock interview answers into feedback.";
-				INFOPLIST_KEY_UILaunchStoryboardName = "";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "CareerVivid uses the microphone to turn spoken resume notes into editable resume drafts.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "CareerVivid uses speech recognition to show your resume coach answers in real time.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -303,7 +312,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -338,7 +346,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -353,7 +360,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -364,7 +370,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -399,7 +404,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -421,7 +425,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;

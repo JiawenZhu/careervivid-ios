@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: app.careervivid
   deploymentTarget:
     iOS: "17.0"
+  createSharedSchemes: true
 settings:
   base:
     CURRENT_PROJECT_VERSION: 1
@@ -25,3 +26,14 @@ targets:
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: CareerVivid uses speech recognition to show your resume coach answers in real time.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         TARGETED_DEVICE_FAMILY: 1
+
+schemes:
+  CareerVividMobileMVP:
+    build:
+      targets:
+        CareerVividMobileMVP: [running, testing, profiling, analyzing]
+    run:
+      config: Debug
+    archive:
+      config: Release
+
