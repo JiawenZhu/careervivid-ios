@@ -33,6 +33,29 @@ struct PracticeReportScreen: View {
 
                         InterviewScoreBreakdown(analysis: analysis)
 
+                        if let skills = analysis.skills, !skills.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Label("Demonstrated skills", systemImage: "bolt.badge.a.fill")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(Color.cvBrand)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 8) {
+                                        ForEach(skills, id: \.self) { skill in
+                                            Text(skill)
+                                                .font(.caption.weight(.bold))
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(Color.cvBrand.opacity(0.08))
+                                                .foregroundStyle(Color.cvBrand)
+                                                .clipShape(Capsule())
+                                        }
+                                    }
+                                }
+                            }
+                            .cvCard(padding: 18, radius: 24, raised: true)
+                        }
+
                         FeedbackInsightCard(
                             title: "What went well",
                             systemImage: "checkmark.seal.fill",
@@ -78,9 +101,19 @@ private struct InterviewScoreBreakdown: View {
                 .font(.headline.weight(.bold))
                 .foregroundStyle(Color.cvBrand)
 
-            ScoreBar(title: "Communication", score: analysis.communicationScore)
-            ScoreBar(title: "Confidence", score: analysis.confidenceScore)
-            ScoreBar(title: "Answer relevance", score: analysis.relevanceScore)
+            if analysis.hasV2Scores {
+                ScoreBar(title: "Communication", score: analysis.communicationScore)
+                ScoreBar(title: "Problem solving", score: analysis.problemSolvingScore ?? analysis.confidenceScore)
+                ScoreBar(title: "Experience & impact", score: analysis.experienceScore ?? analysis.relevanceScore)
+                ScoreBar(title: "Role alignment", score: analysis.roleAlignmentScore ?? analysis.relevanceScore)
+                if let leadershipScore = analysis.leadershipScore {
+                    ScoreBar(title: "Leadership", score: leadershipScore)
+                }
+            } else {
+                ScoreBar(title: "Communication", score: analysis.communicationScore)
+                ScoreBar(title: "Confidence", score: analysis.confidenceScore)
+                ScoreBar(title: "Answer relevance", score: analysis.relevanceScore)
+            }
         }
         .cvCard(padding: 18, radius: 24, raised: true)
     }

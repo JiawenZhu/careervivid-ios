@@ -78,10 +78,22 @@ struct InterviewAnalysisResult: Codable, Equatable, Sendable {
     var communicationScore: Int
     var confidenceScore: Int
     var relevanceScore: Int
+    // New scoring dimensions (v2) — backend returns these alongside legacy fields.
+    var problemSolvingScore: Int?
+    var experienceScore: Int?
+    var roleAlignmentScore: Int?
+    var leadershipScore: Int?
     var strengths: String
     var areasForImprovement: String
+    // List of skills identified by the Senior Coach LLM — unique to iOS app dashboard reports.
+    var skills: [String]?
     var transcript: [InterviewTranscriptEntry]
     var durationInSeconds: Int?
+
+    /// Returns true when the backend has sent the v2 scoring dimensions.
+    var hasV2Scores: Bool {
+        problemSolvingScore != nil && experienceScore != nil && roleAlignmentScore != nil
+    }
 }
 
 struct InterviewLiveToken: Decodable, Sendable {
@@ -424,7 +436,7 @@ enum LocalInterviewReportCache {
 }
 
 /// Lightweight, on-device quest progress for the mobile company catalog. A
-/// stage is cleared only after a score of 75 or higher, matching the quest's
+/// stage is cleared only after a score of 70 or higher, matching the quest's
 /// visible pass threshold. Individual report history remains in its existing
 /// cache; this aggregate keeps the catalog fast and concise.
 struct CompanyQuestProgress: Codable, Equatable, Sendable {
@@ -534,7 +546,7 @@ enum CompanyQuestProgressStore {
         if let completedQuestionIndex, questionCount > 0 {
             progress.nextQuestionIndexByStageID[stageID] = (completedQuestionIndex + 1) % questionCount
         }
-        if score >= 75 {
+        if score >= 70 {
             progress.clearedStageIDs.insert(stageID)
         }
         progressByCompany[companyKey] = progress
@@ -698,8 +710,13 @@ actor RemoteInterviewReportStore {
             communicationScore: FirestoreValue.intField(fields, "communicationScore") ?? 0,
             confidenceScore: FirestoreValue.intField(fields, "confidenceScore") ?? 0,
             relevanceScore: FirestoreValue.intField(fields, "relevanceScore") ?? 0,
+            problemSolvingScore: FirestoreValue.intField(fields, "problemSolvingScore"),
+            experienceScore: FirestoreValue.intField(fields, "experienceScore"),
+            roleAlignmentScore: FirestoreValue.intField(fields, "roleAlignmentScore"),
+            leadershipScore: FirestoreValue.intField(fields, "leadershipScore"),
             strengths: strengths,
             areasForImprovement: areasForImprovement,
+            skills: FirestoreValue.stringArrayField(fields, "skills"),
             transcript: transcript.isEmpty ? fallbackTranscript : transcript,
             durationInSeconds: FirestoreValue.intField(fields, "durationInSeconds")
         )

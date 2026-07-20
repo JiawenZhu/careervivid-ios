@@ -60,24 +60,81 @@ struct QuestionAnalysisScreen: View {
                     .foregroundStyle(Color.cvQuestionInk)
 
                 VStack(spacing: 10) {
-                    QuestionReportMetricCard(
-                        title: "Communication",
-                        detail: "Clarity, structure, and pacing",
-                        score: analysis.communicationScore,
-                        symbol: "text.alignleft"
-                    )
-                    QuestionReportMetricCard(
-                        title: "Confidence",
-                        detail: "Presence and specificity",
-                        score: analysis.confidenceScore,
-                        symbol: "waveform"
-                    )
-                    QuestionReportMetricCard(
-                        title: "Answer relevance",
-                        detail: "Connection to this question",
-                        score: analysis.relevanceScore,
-                        symbol: "scope"
-                    )
+                    if analysis.hasV2Scores {
+                        QuestionReportMetricCard(
+                            title: "Communication",
+                            detail: "Clarity, structure, and articulation",
+                            score: analysis.communicationScore,
+                            symbol: "text.alignleft"
+                        )
+                        QuestionReportMetricCard(
+                            title: "Problem solving",
+                            detail: "Analytical thinking and structured approach",
+                            score: analysis.problemSolvingScore ?? analysis.confidenceScore,
+                            symbol: "lightbulb"
+                        )
+                        QuestionReportMetricCard(
+                            title: "Experience & impact",
+                            detail: "Relevant examples with concrete outcomes",
+                            score: analysis.experienceScore ?? analysis.relevanceScore,
+                            symbol: "star"
+                        )
+                        QuestionReportMetricCard(
+                            title: "Role alignment",
+                            detail: "Connection to the target role",
+                            score: analysis.roleAlignmentScore ?? analysis.relevanceScore,
+                            symbol: "scope"
+                        )
+                        if let leadershipScore = analysis.leadershipScore {
+                            QuestionReportMetricCard(
+                                title: "Leadership",
+                                detail: "People management and collaboration",
+                                score: leadershipScore,
+                                symbol: "person.3"
+                            )
+                        }
+                    } else {
+                        QuestionReportMetricCard(
+                            title: "Communication",
+                            detail: "Clarity, structure, and pacing",
+                            score: analysis.communicationScore,
+                            symbol: "text.alignleft"
+                        )
+                        QuestionReportMetricCard(
+                            title: "Confidence",
+                            detail: "Presence and specificity",
+                            score: analysis.confidenceScore,
+                            symbol: "waveform"
+                        )
+                        QuestionReportMetricCard(
+                            title: "Answer relevance",
+                            detail: "Connection to this question",
+                            score: analysis.relevanceScore,
+                            symbol: "scope"
+                        )
+                    }
+                }
+
+                if let skills = analysis.skills, !skills.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Demonstrated skills")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Color.cvQuestionInk)
+                            .padding(.top, 4)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(skills, id: \.self) { skill in
+                                    Text(skill)
+                                        .font(.caption.weight(.bold))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.cvStudioAccentSoft, in: Capsule())
+                                        .foregroundStyle(Color.cvStudioAccent)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 QuestionReportInsightCard(
