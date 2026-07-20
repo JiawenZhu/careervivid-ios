@@ -71,7 +71,7 @@
 		8B7F4BB5D048308558B079A6 /* CareerVividMobileMVPView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPView.swift; sourceTree = "<group>"; };
 		8F114717AD1CAB84C8260C8F /* SkillTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeView.swift; sourceTree = "<group>"; };
 		907826C65F411F58A062421C /* PracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeView.swift; sourceTree = "<group>"; };
-		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9326E9BC9015DDB24C392A3B /* InterviewPracticeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterviewPracticeService.swift; sourceTree = "<group>"; };
 		B3420853062C88F09AC9227B /* CareerVividMobileMVPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPApp.swift; sourceTree = "<group>"; };
 		B769AB01E86867AB044F692E /* ResumeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeView.swift; sourceTree = "<group>"; };
@@ -185,8 +185,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 5D3B262B0BFF6538A74C5E10 /* Build configuration list for PBXProject "CareerVividMobileMVP" */;
 			developmentRegion = en;
@@ -269,6 +267,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CareerVivid;
@@ -291,6 +290,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CareerVivid;

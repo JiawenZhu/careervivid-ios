@@ -75,21 +75,39 @@ extension Color {
     )
     static let cvInkTertiary = Color.cvDynamic(
         light: Color(red: 0.608, green: 0.608, blue: 0.639),
-        dark: Color(red: 0.443, green: 0.443, blue: 0.478)
+        dark: Color(red: 0.522, green: 0.522, blue: 0.553)
     )
 
     static let cvBlue = Color(red: 0.176, green: 0.612, blue: 1.000)
-    static let cvBlueSoft = Color(red: 0.918, green: 0.961, blue: 1.000)
+    static let cvBlueSoft = Color.cvDynamic(
+        light: Color(red: 0.918, green: 0.961, blue: 1.000),
+        dark: Color(red: 0.05, green: 0.12, blue: 0.22)
+    )
     static let cvGreen = Color(red: 0.208, green: 0.788, blue: 0.435)
-    static let cvGreenSoft = Color(red: 0.918, green: 0.984, blue: 0.945)
+    static let cvGreenSoft = Color.cvDynamic(
+        light: Color(red: 0.918, green: 0.984, blue: 0.945),
+        dark: Color(red: 0.05, green: 0.18, blue: 0.10)
+    )
     static let cvPurple = Color(red: 0.451, green: 0.341, blue: 1.000)
-    static let cvPurpleSoft = Color(red: 0.941, green: 0.929, blue: 1.000)
+    static let cvPurpleSoft = Color.cvDynamic(
+        light: Color(red: 0.941, green: 0.929, blue: 1.000),
+        dark: Color(red: 0.09, green: 0.08, blue: 0.20)
+    )
     static let cvStudioAccent = Color(red: 0.384, green: 0.357, blue: 0.835) // #625BD5
-    static let cvStudioAccentSoft = Color(red: 0.953, green: 0.949, blue: 1.000) // #F3F2FF
+    static let cvStudioAccentSoft = Color.cvDynamic(
+        light: Color(red: 0.953, green: 0.949, blue: 1.000), // #F3F2FF
+        dark: Color(red: 0.09, green: 0.08, blue: 0.20)
+    )
     static let cvPink = Color(red: 1.000, green: 0.431, blue: 0.659)
-    static let cvPinkSoft = Color(red: 1.000, green: 0.918, blue: 0.953)
+    static let cvPinkSoft = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.918, blue: 0.953),
+        dark: Color(red: 0.20, green: 0.06, blue: 0.12)
+    )
     static let cvYellow = Color(red: 1.000, green: 0.702, blue: 0.220)
-    static let cvYellowSoft = Color(red: 1.000, green: 0.965, blue: 0.871)
+    static let cvYellowSoft = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.965, blue: 0.871),
+        dark: Color(red: 0.18, green: 0.12, blue: 0.04)
+    )
 
     static var cvSystemBackground: Color {
         Color.cvSurface
@@ -142,6 +160,86 @@ extension Color {
         Color.teal
         #endif
     }
+
+    // MARK: - Question and Dashboard Palette (Dynamic)
+    static let cvQuestionBackground = Color.cvDynamic(
+        light: Color(red: 0.969, green: 0.941, blue: 0.902), // #F7F0E6
+        dark: Color(red: 0.08, green: 0.08, blue: 0.08)
+    )
+    static let cvQuestionPaper = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.980, blue: 0.945), // #FFFAF1
+        dark: Color(red: 0.141, green: 0.141, blue: 0.157)
+    )
+    static let cvQuestionCard = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.979, blue: 0.941), // #FFF9F0
+        dark: Color(red: 0.110, green: 0.110, blue: 0.118)
+    )
+    static let cvQuestionInk = Color.cvDynamic(
+        light: Color(red: 0.129, green: 0.106, blue: 0.086), // #211B16
+        dark: .white
+    )
+    static let cvQuestionBody = Color.cvDynamic(
+        light: Color(red: 0.400, green: 0.353, blue: 0.290), // #665A4A
+        dark: Color(red: 0.75, green: 0.75, blue: 0.78)
+    )
+    static let cvQuestionMuted = Color.cvDynamic(
+        light: Color(red: 0.420, green: 0.447, blue: 0.514), // #6B7283
+        dark: Color(red: 0.608, green: 0.608, blue: 0.639)
+    )
+    static let cvQuestionBorder = Color.cvDynamic(
+        light: Color(red: 0.894, green: 0.827, blue: 0.737), // #E4D3BC
+        dark: Color(red: 0.22, green: 0.22, blue: 0.24)
+    )
+    static let cvQuestionGrid = Color.cvDynamic(
+        light: Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.075),
+        dark: Color.cvHairline.opacity(0.2)
+    )
+    static let cvQuestionShadow = Color.cvDynamic(
+        light: Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.08),
+        dark: Color.black.opacity(0.24)
+    )
+    static let cvQuestionAmber = Color.cvDynamic(
+        light: Color(red: 0.663, green: 0.475, blue: 0.208), // #A97935
+        dark: Color(red: 0.80, green: 0.60, blue: 0.30)
+    )
+    static let cvQuestionSoftLavender = Color.cvDynamic(
+        light: Color(red: 0.875, green: 0.886, blue: 1.000), // #DFE2FF
+        dark: Color(red: 0.129, green: 0.141, blue: 0.231)
+    )
+    static let cvQuestionLavenderText = Color.cvDynamic(
+        light: Color(red: 0.553, green: 0.533, blue: 0.902), // #8D88E6
+        dark: Color(red: 0.686, green: 0.675, blue: 0.937)
+    )
+    static let cvQuestionDashboardBlue = Color(red: 0.231, green: 0.510, blue: 0.965) // #3B82F6
+    static let cvQuestionHeatEmpty = Color.cvDynamic(
+        light: Color(red: 0.925, green: 0.922, blue: 0.940), // #ECEBF0
+        dark: Color(red: 0.141, green: 0.141, blue: 0.157)
+    )
+    static let cvQuestionSuccess = Color.cvDynamic(
+        light: Color(red: 0.082, green: 0.502, blue: 0.239), // #15803D
+        dark: Color(red: 0.208, green: 0.788, blue: 0.435)
+    )
+    static let cvQuestionRecordingFill = Color.cvDynamic(
+        light: Color(red: 0.851, green: 0.949, blue: 0.886), // #D9F2E2
+        dark: Color(red: 0.07, green: 0.20, blue: 0.11)
+    )
+    static let cvQuestionRecordingText = Color.cvDynamic(
+        light: Color(red: 0.086, green: 0.396, blue: 0.208), // #166534
+        dark: Color(red: 0.208, green: 0.788, blue: 0.435)
+    )
+    static let cvQuestionRecordingRing = Color(red: 0.984, green: 0.443, blue: 0.522) // #FB7185
+    static let cvQuestionWarning = Color.cvDynamic(
+        light: Color(red: 0.851, green: 0.467, blue: 0.024), // #D97706
+        dark: Color(red: 1.000, green: 0.702, blue: 0.220)
+    )
+    static let cvQuestionDanger = Color.cvDynamic(
+        light: Color(red: 0.882, green: 0.114, blue: 0.282), // #E11D48
+        dark: Color(red: 1.000, green: 0.271, blue: 0.353)
+    )
+    static let cvQuestionDashboardRose = Color.cvDynamic(
+        light: Color(red: 0.882, green: 0.114, blue: 0.282), // #E11D48
+        dark: Color(red: 1.000, green: 0.271, blue: 0.353)
+    )
 }
 
 // MARK: - Brand gradient (use as ShapeStyle)

@@ -184,10 +184,4 @@ struct QuestionCatalogUnavailableScreen: View {
     }
 }
 
-private extension Color {
-    static let cvQuestionCard = Color(red: 1.000, green: 0.979, blue: 0.941) // #FFF9F0
-    static let cvQuestionInk = Color(red: 0.129, green: 0.106, blue: 0.086) // #211B16
-    static let cvQuestionBody = Color(red: 0.400, green: 0.353, blue: 0.290) // #665A4A
-    static let cvQuestionBorder = Color(red: 0.894, green: 0.827, blue: 0.737) // #E4D3BC
-    static let cvQuestionWarning = Color(red: 0.851, green: 0.467, blue: 0.024) // #D97706
-}
+

@@ -786,24 +786,4 @@ private struct QuestionErrorCard: View {
 }
 
 
-private extension Color {
-    static let cvQuestionPaper = Color(red: 1.000, green: 0.980, blue: 0.945) // #FFFAF1
-    static let cvQuestionCard = Color(red: 1.000, green: 0.979, blue: 0.941) // #FFF9F0
-    static let cvQuestionInk = Color(red: 0.129, green: 0.106, blue: 0.086) // #211B16
-    static let cvQuestionBody = Color(red: 0.400, green: 0.353, blue: 0.290) // #665A4A
-    static let cvQuestionMuted = Color(red: 0.420, green: 0.447, blue: 0.514) // #6B7283
-    static let cvQuestionBorder = Color(red: 0.894, green: 0.827, blue: 0.737) // #E4D3BC
-    static let cvQuestionGrid = Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.075)
-    static let cvQuestionShadow = Color(red: 0.545, green: 0.353, blue: 0.086).opacity(0.08)
-    static let cvQuestionAmber = Color(red: 0.663, green: 0.475, blue: 0.208) // #A97935
-    static let cvQuestionSoftLavender = Color(red: 0.875, green: 0.886, blue: 1.000) // #DFE2FF
-    static let cvQuestionLavenderText = Color(red: 0.553, green: 0.533, blue: 0.902) // #8D88E6
-    static let cvQuestionDashboardBlue = Color(red: 0.231, green: 0.510, blue: 0.965) // #3B82F6
-    static let cvQuestionSuccess = Color(red: 0.082, green: 0.502, blue: 0.239) // #15803D
-    static let cvQuestionRecordingFill = Color(red: 0.851, green: 0.949, blue: 0.886) // #D9F2E2
-    static let cvQuestionRecordingText = Color(red: 0.086, green: 0.396, blue: 0.208) // #166534
-    static let cvQuestionRecordingRing = Color(red: 0.984, green: 0.443, blue: 0.522) // #FB7185
-    static let cvQuestionWarning = Color(red: 0.851, green: 0.467, blue: 0.024) // #D97706
-    static let cvQuestionDanger = Color(red: 0.882, green: 0.114, blue: 0.282) // #E11D48
-    static let cvQuestionDashboardRose = Color(red: 0.882, green: 0.114, blue: 0.282) // #E11D48
-}
+

@@ -75,19 +75,34 @@ extension Color {
     )
     static let cvInkTertiary = Color.cvDynamic(
         light: Color(red: 0.608, green: 0.608, blue: 0.639),
-        dark: Color(red: 0.443, green: 0.443, blue: 0.478)
+        dark: Color(red: 0.522, green: 0.522, blue: 0.553)
     )
 
     static let cvBlue = Color(red: 0.176, green: 0.612, blue: 1.000)
-    static let cvBlueSoft = Color(red: 0.918, green: 0.961, blue: 1.000)
+    static let cvBlueSoft = Color.cvDynamic(
+        light: Color(red: 0.918, green: 0.961, blue: 1.000),
+        dark: Color(red: 0.05, green: 0.12, blue: 0.22)
+    )
     static let cvGreen = Color(red: 0.208, green: 0.788, blue: 0.435)
-    static let cvGreenSoft = Color(red: 0.918, green: 0.984, blue: 0.945)
+    static let cvGreenSoft = Color.cvDynamic(
+        light: Color(red: 0.918, green: 0.984, blue: 0.945),
+        dark: Color(red: 0.05, green: 0.18, blue: 0.10)
+    )
     static let cvPurple = Color(red: 0.451, green: 0.341, blue: 1.000)
-    static let cvPurpleSoft = Color(red: 0.941, green: 0.929, blue: 1.000)
+    static let cvPurpleSoft = Color.cvDynamic(
+        light: Color(red: 0.941, green: 0.929, blue: 1.000),
+        dark: Color(red: 0.09, green: 0.08, blue: 0.20)
+    )
     static let cvPink = Color(red: 1.000, green: 0.431, blue: 0.659)
-    static let cvPinkSoft = Color(red: 1.000, green: 0.918, blue: 0.953)
+    static let cvPinkSoft = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.918, blue: 0.953),
+        dark: Color(red: 0.20, green: 0.06, blue: 0.12)
+    )
     static let cvYellow = Color(red: 1.000, green: 0.702, blue: 0.220)
-    static let cvYellowSoft = Color(red: 1.000, green: 0.965, blue: 0.871)
+    static let cvYellowSoft = Color.cvDynamic(
+        light: Color(red: 1.000, green: 0.965, blue: 0.871),
+        dark: Color(red: 0.18, green: 0.12, blue: 0.04)
+    )
 
     static var cvSystemBackground: Color {
         Color.cvSurface
