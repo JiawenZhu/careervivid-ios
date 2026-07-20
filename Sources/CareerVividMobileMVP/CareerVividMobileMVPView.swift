@@ -37,6 +37,7 @@ public struct CareerVividMobileMVPView: View {
                 .padding(.horizontal, 22)
                 .padding(.bottom, 8)
         }
+        .environmentObject(authStore)
     }
 
     @ViewBuilder

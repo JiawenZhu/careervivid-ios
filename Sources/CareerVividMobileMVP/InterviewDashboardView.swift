@@ -7,6 +7,7 @@ struct InterviewDashboardView: View {
     @State private var reports = LocalInterviewReportCache.load().map(InterviewReportSnapshot.local)
     @State private var isLoading = true
     @State private var loadError: String?
+    @State private var showSettings = false
 
     private var summary: InterviewDashboardSummary {
         InterviewDashboardSummary(reports: reports)
@@ -16,7 +17,7 @@ struct InterviewDashboardView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
-                    InterviewDashboardHeader()
+                    InterviewDashboardHeader(onSettings: { showSettings = true })
 
                     if reports.isEmpty && !isLoading {
                         InterviewDashboardEmptyState(message: loadError)
@@ -50,6 +51,9 @@ struct InterviewDashboardView: View {
             .background(Color.cvSystemGroupedBackground.ignoresSafeArea())
             .navigationBarHidden(true)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+        }
         .task { await refreshReports() }
         .refreshable { await refreshReports() }
     }
@@ -70,6 +74,8 @@ struct InterviewDashboardView: View {
 }
 
 private struct InterviewDashboardHeader: View {
+    var onSettings: () -> Void = {}
+
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         if hour < 12 { return "Good morning" }
@@ -78,16 +84,22 @@ private struct InterviewDashboardHeader: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(greeting)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.cvInkSecondary)
-            Text("Your interview practice")
-                .font(.title2.weight(.bold))
-                .foregroundStyle(Color.cvInk)
-            Text("Every report stays here, so you can see what is improving.")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(Color.cvInkSecondary)
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(greeting)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.cvInkSecondary)
+                Text("Your interview practice")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(Color.cvInk)
+                Text("Every report stays here, so you can see what is improving.")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.cvInkSecondary)
+            }
+
+            Spacer(minLength: 0)
+
+            SettingsGearButton(action: onSettings)
         }
     }
 }
