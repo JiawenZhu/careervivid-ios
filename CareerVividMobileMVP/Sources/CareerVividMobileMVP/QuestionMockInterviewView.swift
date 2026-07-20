@@ -375,19 +375,24 @@ enum QuestionAnalysisCopy {
     static func headline(for score: Int) -> String {
         switch score {
         case 85...:
-            return "Clear, credible answer — sharpen the impact"
+            return "Impressive answer — ready for the real thing"
         case 70...:
             return "Strong start — make the outcome clearer"
-        default:
+        case 55...:
             return "A useful first pass — add stronger proof"
+        default:
+            return "Keep going — practice builds confidence"
         }
     }
 
     static func subtitle(for analysis: InterviewAnalysisResult) -> String {
-        if analysis.relevanceScore >= 80 {
+        if let exp = analysis.experienceScore, exp >= 75 {
+            return "You shared strong examples with real impact."
+        }
+        if analysis.relevanceScore >= 75 {
             return "You stayed connected to the company and the question."
         }
-        if analysis.communicationScore >= 70 {
+        if analysis.communicationScore >= 65 {
             return "Your context came through clearly. Now make the evidence more specific."
         }
         return "Use a tighter example so the interviewer can follow your decision and impact."
