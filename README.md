@@ -8,7 +8,7 @@
 
 </div>
 
-![CareerVivid iOS Home, showing a 13-week interview activity map, practice metrics, and the next coaching focus](docs/screenshots/ios/home-interview-activity.png)
+<img src="docs/screenshots/ios/home-interview-activity.png" width="320" alt="CareerVivid iOS Home" />
 
 CareerVivid iOS is the mobile interview-practice companion to [CareerVivid](https://careervivid.app). It turns company interview guides, a candidate's target role, spoken responses, and AI feedback into a small repeatable loop: choose a direction, answer one focused question, improve the transcript, review the report, and take the next challenge.
 
@@ -30,21 +30,21 @@ The Home tab is report-first rather than a generic dashboard. A GitHub-style act
 
 Candidates select a role family, exact target role, experience level, current skills, and growth direction. The app preselects role-relevant skills — for example, Swift / SwiftUI and API Design for an iOS engineer — but keeps every choice editable. It then converts the profile into six progressive challenges grounded in real company interview themes.
 
-![A personalized Frontend Engineer challenge path with role-specific skills and locked progression](docs/screenshots/ios/skill-tree-overview.png)
+<img src="docs/screenshots/ios/skill-tree-overview.png" width="320" alt="Personalized challenge path" />
 
 ### Voice-first practice with an editable review step
 
 The candidate taps once to record and again to finish. CareerVivid turns the captured answer into an editable transcript, provides direct suggestions to strengthen it, then sends the reviewed response for deep analysis. The intermediate review step gives users control over recognition errors and makes the AI handoff explicit.
 
-![Editable transcript review with concise improvement suggestions and the Deep AI Analysis action](docs/screenshots/ios/transcript-review-suggestions.png)
+<img src="docs/screenshots/ios/transcript-review-suggestions.png" width="320" alt="Transcript review suggestions" />
 
 ### Company Quests
 
 Mock Interview provides an explorable catalog of company guides. Each company quest expands sourced stages into a consistent six-stage practice loop: recruiter screen, coding, system design, behavioral, values, and final round. Coding and system-design stages can open their specialized web workspaces; spoken stages remain native to iOS.
 
-![Mock Interview catalog with company cards, topic filters, quest progress, and company-specific practice entry points](docs/screenshots/ios/mock-interview-catalog.png)
+<img src="docs/screenshots/ios/mock-interview-catalog.png" width="320" alt="Mock Interview catalog" />
 
-![Figma Company Quest with progress and recruiter, coding, system-design, behavioral, values, and final rounds](docs/screenshots/ios/company-quest-overview.png)
+<img src="docs/screenshots/ios/company-quest-overview.png" width="320" alt="Figma Company Quest" />
 
 ## How the iOS app is put together
 

@@ -2,7 +2,7 @@
 
 `CareerVividMobileMVP` is the SwiftUI iOS app for daily interview practice. It pairs the CareerVivid company-guide catalog with a role-aware Skill Tree, timed voice answers, editable transcription, Deep AI Analysis, and persisted report history.
 
-![CareerVivid mobile voice practice with a personalized question, live transcript state, and a tap-to-stop recorder](../docs/screenshots/ios/personalized-challenge-recording.png)
+<img src="../docs/screenshots/ios/personalized-challenge-recording.png" width="320" alt="CareerVivid mobile voice practice" />
 
 ## What the app does
 
