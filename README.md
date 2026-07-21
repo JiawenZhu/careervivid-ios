@@ -12,6 +12,13 @@
 
 CareerVivid iOS is the mobile interview-practice companion to [CareerVivid](https://careervivid.app). It turns company interview guides, a candidate's target role, spoken responses, and AI feedback into a small repeatable loop: choose a direction, answer one focused question, improve the transcript, review the report, and take the next challenge.
 
+## Test account (for reviewers)
+
+Sign in with this shared demo account to explore the full experience — no setup required:
+
+- **Email:** `evan@careervivid.app`
+- **Password:** `123456`
+
 ## The candidate loop
 
 1. **Choose a target.** Build a Skill Tree from a role, experience level, current strengths, and a growth direction.
