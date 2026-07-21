@@ -4,6 +4,9 @@ import SwiftUI
 /// persisted report history so a new attempt adds context instead of erasing a
 /// previous report for the same question.
 struct InterviewDashboardView: View {
+    var onCreateSkill: () -> Void = {}
+    var onStartMock: () -> Void = {}
+
     @State private var reports = LocalInterviewReportCache.load().map(InterviewReportSnapshot.local)
     @State private var isLoading = true
     @State private var loadError: String?
@@ -20,7 +23,11 @@ struct InterviewDashboardView: View {
                     InterviewDashboardHeader(onSettings: { showSettings = true })
 
                     if reports.isEmpty && !isLoading {
-                        InterviewDashboardEmptyState(message: loadError)
+                        InterviewDashboardEmptyState(
+                            errorMessage: loadError,
+                            onCreateSkill: onCreateSkill,
+                            onStartMock: onStartMock
+                        )
                     } else {
                         InterviewDashboardHero(summary: summary)
                         InterviewDashboardMetricRow(summary: summary)
@@ -365,28 +372,216 @@ private struct InterviewSavedReportDetail: View {
     }
 }
 
+/// Shown before the first report exists. Instead of a dead-end message, it is a
+/// launchpad: two clear routes (a live mock interview, or a personalized skill
+/// path) that both lead back here with real feedback. Entrance and mark
+/// animations mirror the Skill Tree tab so the whole app feels of a piece.
 private struct InterviewDashboardEmptyState: View {
-    let message: String?
+    let errorMessage: String?
+    let onCreateSkill: () -> Void
+    let onStartMock: () -> Void
+
+    @State private var appeared = false
 
     var body: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "mic.badge.plus")
-                .font(.largeTitle)
-                .foregroundStyle(Color.cvQuestionLavenderText)
-                .frame(width: 62, height: 62)
-                .background(Color.cvQuestionSoftLavender.opacity(0.58), in: Circle())
-            Text("Your interview dashboard is ready")
-                .font(.headline.weight(.bold))
-                .foregroundStyle(Color.cvInk)
-            Text(message ?? "Complete your first mock answer and its feedback, score, strengths, and next steps will be saved here.")
+        VStack(spacing: 14) {
+            DashboardLaunchHeader()
+                .modifier(DashboardEntrance(appeared: appeared, index: 0))
+
+            DashboardLaunchOptionCard(
+                eyebrow: "PRACTICE LIVE",
+                title: "Start a mock interview",
+                message: "Answer a real interview question out loud. Vivid scores your response and saves the feedback, strengths, and next steps right here.",
+                icon: "mic.fill",
+                accent: Color.cvBrandWarm,
+                soft: Color.cvBrandSoft,
+                gradient: LinearGradient.cvBrandGradient,
+                ctaTitle: "Start a mock interview",
+                ctaIcon: "arrow.right",
+                pulses: true,
+                action: onStartMock
+            )
+            .modifier(DashboardEntrance(appeared: appeared, index: 1))
+
+            DashboardLaunchOptionCard(
+                eyebrow: "BUILD SKILLS",
+                title: "Create a skill path",
+                message: "Tell Vivid your target role and it turns real company interviews into a focused, level-by-level challenge tree.",
+                icon: "point.bottomleft.forward.to.point.topright.scurvepath",
+                accent: Color.cvStudioAccent,
+                soft: Color.cvStudioAccentSoft,
+                gradient: LinearGradient(
+                    colors: [Color.cvStudioAccent, Color.cvPurple, Color.cvBlue],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ),
+                ctaTitle: "Create a new skill",
+                ctaIcon: "plus",
+                pulses: false,
+                action: onCreateSkill
+            )
+            .modifier(DashboardEntrance(appeared: appeared, index: 2))
+
+            if let errorMessage {
+                Label(errorMessage, systemImage: "wifi.exclamationmark")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.cvInkTertiary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 2)
+                    .modifier(DashboardEntrance(appeared: appeared, index: 3))
+            }
+        }
+        .onAppear { appeared = true }
+    }
+}
+
+/// Staggered slide-up + fade entrance, one step per card index.
+private struct DashboardEntrance: ViewModifier {
+    let appeared: Bool
+    let index: Int
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 20)
+            .animation(.spring(response: 0.55, dampingFraction: 0.82).delay(Double(index) * 0.09), value: appeared)
+    }
+}
+
+private struct DashboardLaunchHeader: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            DashboardAnimatedMark()
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Let's get your first report")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.cvInk)
+                Text("Pick where to begin. Both paths lead to feedback, a score, and a report that lands right here.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.cvInkSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(18)
+        .background(Color.cvSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.cvHairline, lineWidth: 1))
+    }
+}
+
+/// Rotating dashed gradient ring — the same motion language as the Skill Tree
+/// intro mark, tuned to the dashboard's accent trio.
+private struct DashboardAnimatedMark: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 24.0, paused: reduceMotion)) { context in
+            let time = context.date.timeIntervalSinceReferenceDate
+            let rotation = reduceMotion ? 0 : time.truncatingRemainder(dividingBy: 6) / 6 * 360
+            ZStack {
+                Circle()
+                    .stroke(
+                        AngularGradient(
+                            colors: [Color.cvStudioAccent, Color.cvPurple, Color.cvBlue, Color.cvStudioAccent],
+                            center: .center
+                        ),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: [18, 8])
+                    )
+                    .rotationEffect(.degrees(rotation))
+                Image(systemName: "sparkles")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Color.cvStudioAccent)
+            }
+            .frame(width: 54, height: 54)
+            .background(Color.cvStudioAccentSoft, in: Circle())
+        }
+    }
+}
+
+private struct DashboardLaunchOptionCard: View {
+    let eyebrow: String
+    let title: String
+    let message: String
+    let icon: String
+    let accent: Color
+    let soft: Color
+    let gradient: LinearGradient
+    let ctaTitle: String
+    let ctaIcon: String
+    let pulses: Bool
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(spacing: 13) {
+                Image(systemName: icon)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(accent)
+                    .frame(width: 52, height: 52)
+                    .background(soft, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(eyebrow)
+                        .font(.caption2.weight(.bold))
+                        .tracking(1.4)
+                        .foregroundStyle(accent)
+                    Text(title)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(Color.cvInk)
+                }
+                Spacer(minLength: 0)
+            }
+
+            Text(message)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.cvInkSecondary)
-                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ctaButton
         }
-        .padding(24)
-        .frame(maxWidth: .infinity)
-        .background(Color.cvSurface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.cvHairline, lineWidth: 1))
+        .padding(17)
+        .background(Color.cvSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.cvHairline, lineWidth: 1))
+        .shadow(color: .black.opacity(0.05), radius: 12, x: 0, y: 5)
+    }
+
+    @ViewBuilder
+    private var ctaButton: some View {
+        if pulses {
+            TimelineView(.animation(minimumInterval: 1.0 / 24.0, paused: reduceMotion)) { context in
+                let time = context.date.timeIntervalSinceReferenceDate
+                let scale = reduceMotion ? 1 : 1 + sin(time * 2.2) * 0.01
+                button.scaleEffect(scale)
+            }
+        } else {
+            button
+        }
+    }
+
+    private var button: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Text(ctaTitle)
+                Image(systemName: ctaIcon).font(.footnote.weight(.bold))
+            }
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(gradient, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .shadow(color: accent.opacity(0.24), radius: 10, x: 0, y: 5)
+        }
+        .buttonStyle(DashboardPressButtonStyle())
+    }
+}
+
+private struct DashboardPressButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.92 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
     }
 }
 

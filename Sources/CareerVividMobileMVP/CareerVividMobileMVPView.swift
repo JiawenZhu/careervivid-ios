@@ -7,23 +7,17 @@ public struct CareerVividMobileMVPView: View {
     public init() {}
 
     public var body: some View {
-        let _ = print("DEBUG: CareerVividMobileMVPView body evaluated. isLoading = \(authStore.isLoading), shouldShowAuthGate = \(authStore.shouldShowAuthGate)")
         Group {
             if authStore.isLoading {
-                let _ = print("DEBUG: Rendering SplashLoadingView")
                 SplashLoadingView()
             } else if authStore.shouldShowAuthGate {
-                let _ = print("DEBUG: Rendering AuthView")
                 AuthView(store: authStore)
             } else {
-                let _ = print("DEBUG: Rendering appTabs")
                 appTabs
             }
         }
         .task {
-            print("DEBUG: CareerVividMobileMVPView .task modifier started")
             await authStore.load()
-            print("DEBUG: CareerVividMobileMVPView .task modifier finished")
         }
     }
 
@@ -44,11 +38,21 @@ public struct CareerVividMobileMVPView: View {
     private var selectedTabView: some View {
         switch selectedTab {
         case .home:
-            InterviewDashboardView()
+            InterviewDashboardView(
+                onCreateSkill: { switchTab(to: .skills) },
+                onStartMock: { switchTab(to: .practice) }
+            )
         case .skills:
             SkillTreeView()
         case .practice:
             PracticeCatalogView()
+        }
+    }
+
+    private func switchTab(to tab: MobileTab) {
+        cvImpactHaptic(.light)
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
+            selectedTab = tab
         }
     }
 }

@@ -546,4 +546,9 @@ enum SkillTreeChallengeProgressStore {
         guard let data = UserDefaults.standard.data(forKey: key) else { return [:] }
         return (try? JSONDecoder().decode([String: SkillTreeChallengeProgress].self, from: data)) ?? [:]
     }
+
+    /// Clears all saved challenge progress. Used when deleting the account.
+    static func clear() {
+        UserDefaults.standard.removeObject(forKey: key)
+    }
 }

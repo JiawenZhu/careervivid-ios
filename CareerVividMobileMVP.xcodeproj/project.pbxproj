@@ -61,7 +61,7 @@
 		0801697E587B0C53B1ED3B53 /* MobileInterviewGuideCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileInterviewGuideCatalog.swift; sourceTree = "<group>"; };
 		0B834B9A258EFECE28DFEF2A /* ResumeSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeSyncService.swift; sourceTree = "<group>"; };
 		0D8E5ADCD00F2E114AA06C9A /* PracticeSetupViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeSetupViews.swift; sourceTree = "<group>"; };
-		12A8188490E22F9973DA2C17 /* CareerVividMobileMVPTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CareerVividMobileMVPTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12A8188490E22F9973DA2C17 /* CareerVividMobileMVPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CareerVividMobileMVPTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		15831EBE240DAB01CD63729A /* CareerVividMobileMVPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPTests.swift; sourceTree = "<group>"; };
 		21F802E9D5C548F5874A98E0 /* ResumeEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeEditorStore.swift; sourceTree = "<group>"; };
 		23FC56C7EC02C058B807D9CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -85,7 +85,7 @@
 		8B7F4BB5D048308558B079A6 /* CareerVividMobileMVPView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPView.swift; sourceTree = "<group>"; };
 		8F114717AD1CAB84C8260C8F /* SkillTreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillTreeView.swift; sourceTree = "<group>"; };
 		907826C65F411F58A062421C /* PracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeView.swift; sourceTree = "<group>"; };
-		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		921F3B47AED2339B97326A3A /* CareerVividMobileMVP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CareerVividMobileMVP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9326E9BC9015DDB24C392A3B /* InterviewPracticeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterviewPracticeService.swift; sourceTree = "<group>"; };
 		960AE54467918570804299CE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B3420853062C88F09AC9227B /* CareerVividMobileMVPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CareerVividMobileMVPApp.swift; sourceTree = "<group>"; };
@@ -229,14 +229,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					91EF66C7152AF0D9A9302D6C = {
 						DevelopmentTeam = C265XC3RH7;
 						ProvisioningStyle = Automatic;
 					};
 					C8774E6AA1E9ACB5D4E553D9 = {
-						DevelopmentTeam = C265XC3RH7;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -340,6 +339,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vivid;
@@ -362,6 +362,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				DEVELOPMENT_TEAM = C265XC3RH7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vivid;
@@ -419,6 +420,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -456,6 +458,7 @@
 				DEVELOPMENT_TEAM = C265XC3RH7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -470,6 +473,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -480,6 +484,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -517,6 +522,7 @@
 				DEVELOPMENT_TEAM = C265XC3RH7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -538,6 +544,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;

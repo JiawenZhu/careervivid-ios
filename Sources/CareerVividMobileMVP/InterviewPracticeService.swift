@@ -433,6 +433,12 @@ enum LocalInterviewReportCache {
         }
         return reports
     }
+
+    /// Removes every locally cached report. Used when deleting the account so no
+    /// interview history lingers on the device.
+    static func clear() {
+        UserDefaults.standard.removeObject(forKey: key)
+    }
 }
 
 /// Lightweight, on-device quest progress for the mobile company catalog. A

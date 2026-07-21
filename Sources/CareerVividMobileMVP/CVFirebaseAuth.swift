@@ -64,19 +64,11 @@ actor CVFirebaseAuth {
     }
 
     func currentSession() async -> CVFirebaseSession? {
-        print("DEBUG: CVFirebaseAuth.currentSession() started")
-        print("DEBUG: CVFirebaseAuth.currentSession() calling storedRefreshToken()")
-        let token = storedRefreshToken()
-        print("DEBUG: CVFirebaseAuth.currentSession() storedRefreshToken() check done, token is nil: \(token == nil)")
-        guard token != nil else { return nil }
+        guard storedRefreshToken() != nil else { return nil }
         let uid = cachedUID ?? UserDefaults.standard.string(forKey: udUIDKey)
-        guard let uid, !uid.isEmpty else {
-            print("DEBUG: CVFirebaseAuth.currentSession() uid is empty")
-            return nil
-        }
+        guard let uid, !uid.isEmpty else { return nil }
         let provider = cachedProvider ?? storedProvider()
         let email = cachedEmail ?? UserDefaults.standard.string(forKey: udEmailKey)
-        print("DEBUG: CVFirebaseAuth.currentSession() returning session for uid \(uid)")
         return CVFirebaseSession(uid: uid, email: email, provider: provider)
     }
 
@@ -128,6 +120,21 @@ actor CVFirebaseAuth {
     }
 
     func signOut() {
+        clearCache()
+    }
+
+    /// Permanently deletes the signed-in Firebase user through the Identity
+    /// Toolkit `accounts:delete` endpoint, then clears local credentials. The
+    /// `authToken()` call guarantees a freshly refreshed idToken so Firebase
+    /// does not reject the request as too old.
+    func deleteAccount() async throws {
+        let auth = try await authToken()
+        let url = URL(string: "https://identitytoolkit.googleapis.com/v1/accounts:delete?key=\(apiKey)")!
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["idToken": auth.idToken])
+        _ = try await performJSON(req)
         clearCache()
     }
 
@@ -198,12 +205,20 @@ actor CVFirebaseAuth {
         let data: Data
         do {
             data = try await performJSON(req)
-        } catch {
-            clearCache()
-            if storedProvider == .anonymous {
-                return try await signInAnonymously()
+        } catch let error as CVFirebaseAuthError {
+            // Only a Firebase-reported rejection (revoked/expired refresh token,
+            // deleted or disabled user) means the session is genuinely dead and
+            // the stored credentials should be cleared. A transient server error
+            // (.signInFailed) must NOT wipe a still-valid login.
+            if case .firebase = error {
+                return try await recoverFromDeadSession(provider: storedProvider)
             }
-            throw CVFirebaseAuthError.sessionExpired
+            throw error
+        } catch {
+            // Network/connectivity failure (offline, timeout). Keep the stored
+            // credentials intact so the next online attempt — or the next app
+            // launch — stays signed in instead of forcing a re-login.
+            throw error
         }
         let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
 
@@ -212,11 +227,9 @@ actor CVFirebaseAuth {
             let expStr = json["expires_in"]  as? String,
             let exp    = Double(expStr)
         else {
-            clearCache()
-            if storedProvider == .anonymous {
-                return try await signInAnonymously()
-            }
-            throw CVFirebaseAuthError.sessionExpired
+            // A 2xx with an unreadable body is almost always a transient upstream
+            // hiccup — treat it as retryable rather than destroying the session.
+            throw CVFirebaseAuthError.signInFailed
         }
 
         let uid = (json["user_id"]  as? String)
@@ -233,6 +246,19 @@ actor CVFirebaseAuth {
             email: UserDefaults.standard.string(forKey: udEmailKey)
         )
         return (uid, token)
+    }
+
+    /// The stored refresh token was explicitly rejected by Firebase, so the
+    /// credentials are dead. Anonymous sessions can silently start fresh; real
+    /// accounts must sign in again.
+    private func recoverFromDeadSession(
+        provider: CVFirebaseAuthProvider
+    ) async throws -> (uid: String, idToken: String) {
+        clearCache()
+        if provider == .anonymous {
+            return try await signInAnonymously()
+        }
+        throw CVFirebaseAuthError.sessionExpired
     }
 
     // MARK: - Cache helpers
@@ -275,24 +301,18 @@ actor CVFirebaseAuth {
     }
 
     private func storedRefreshToken() -> String? {
-        print("DEBUG: CVFirebaseAuth.storedRefreshToken() started")
         if let token = keychainRefreshToken() {
-            print("DEBUG: CVFirebaseAuth.storedRefreshToken() found token in keychain")
             return token
         }
-        print("DEBUG: CVFirebaseAuth.storedRefreshToken() token not in keychain, checking legacy UserDefaults")
         guard let legacyToken = UserDefaults.standard.string(forKey: legacyUDRefreshKey) else {
-            print("DEBUG: CVFirebaseAuth.storedRefreshToken() legacy token not found")
             return nil
         }
-        print("DEBUG: CVFirebaseAuth.storedRefreshToken() found legacy token, storing to keychain")
         storeRefreshToken(legacyToken)
         UserDefaults.standard.removeObject(forKey: legacyUDRefreshKey)
         return legacyToken
     }
 
     private func storeRefreshToken(_ token: String) {
-        print("DEBUG: CVFirebaseAuth.storeRefreshToken() started")
         guard let data = token.data(using: .utf8) else { return }
         let query = refreshTokenKeychainQuery()
         SecItemDelete(query as CFDictionary)
@@ -300,21 +320,16 @@ actor CVFirebaseAuth {
         var attributes = query
         attributes[kSecValueData as String] = data
         attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        print("DEBUG: CVFirebaseAuth.storeRefreshToken() calling SecItemAdd")
-        let status = SecItemAdd(attributes as CFDictionary, nil)
-        print("DEBUG: CVFirebaseAuth.storeRefreshToken() SecItemAdd returned status \(status)")
+        SecItemAdd(attributes as CFDictionary, nil)
     }
 
     private func keychainRefreshToken() -> String? {
-        print("DEBUG: CVFirebaseAuth.keychainRefreshToken() started")
         var query = refreshTokenKeychainQuery()
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
 
         var item: CFTypeRef?
-        print("DEBUG: CVFirebaseAuth.keychainRefreshToken() calling SecItemCopyMatching")
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        print("DEBUG: CVFirebaseAuth.keychainRefreshToken() SecItemCopyMatching returned status \(status)")
         guard status == errSecSuccess,
               let data = item as? Data,
               let token = String(data: data, encoding: .utf8),

@@ -51,6 +51,12 @@ struct SettingsView: View {
     @State private var comingSoon: ComingSoonKind?
     @State private var confirmLogout = false
     @State private var confirmDelete = false
+    @State private var isDeleting = false
+    @State private var deleteError: String?
+
+    private var deleteErrorBinding: Binding<Bool> {
+        Binding(get: { deleteError != nil }, set: { if !$0 { deleteError = nil } })
+    }
 
     private var isSignedIn: Bool {
         guard let session = authStore.session else { return false }
@@ -109,12 +115,38 @@ struct SettingsView: View {
             Button("Cancel", role: .cancel) {}
         }
         .alert("Delete account?", isPresented: $confirmDelete) {
-            Button("Delete", role: .destructive) {
-                Task { await authStore.signOut(); dismiss() }
-            }
+            Button("Delete", role: .destructive) { deleteAccount() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently removes your Vivid account and signs you out on this device. This cannot be undone.")
+            Text("This permanently deletes your Vivid account and every saved report on this device. This cannot be undone.")
+        }
+        .alert("Couldn't delete account", isPresented: deleteErrorBinding) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(deleteError ?? "Something went wrong. Please try again.")
+        }
+        .overlay {
+            if isDeleting {
+                ZStack {
+                    Color.black.opacity(0.12).ignoresSafeArea()
+                    ProgressView("Deleting account…")
+                        .padding(20)
+                        .background(Color.cvSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+            }
+        }
+    }
+
+    private func deleteAccount() {
+        Task {
+            isDeleting = true
+            defer { isDeleting = false }
+            do {
+                try await authStore.deleteAccount()
+                dismiss()
+            } catch {
+                deleteError = error.localizedDescription
+            }
         }
     }
 
