@@ -199,7 +199,7 @@ struct PracticeView: View {
 
         guard let guideSlug, !guideSlug.isEmpty else {
             isLoadingQuestions = false
-            questionLoadError = "Choose a company guide to load its official interview questions."
+            questionLoadError = "Choose a company guide to load its interview questions."
             return
         }
 
@@ -216,7 +216,7 @@ struct PracticeView: View {
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
             guard !officialQuestions.isEmpty else {
-                throw InterviewPracticeServiceError.functionError("The official question catalog returned no usable questions for this stage.")
+                throw InterviewPracticeServiceError.functionError("No interview questions are available for this stage yet.")
             }
             questions = officialQuestions
             officialSourceURL = response.sourceURL

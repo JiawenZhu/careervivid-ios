@@ -624,7 +624,7 @@ private struct SkillTreeHeader: View {
             HStack {
                 Text("\(completedCount) of \(totalCount) challenges complete")
                 Spacer()
-                Text("Built from real company interviews")
+                Text("Generated from real interview reviews")
             }
             .font(.caption2.weight(.semibold))
             .foregroundStyle(Color.cvInkSecondary)

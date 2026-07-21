@@ -444,7 +444,7 @@ enum SkillChallengeQuestionFactory {
         let skills = profile.currentSkills.sorted()
         let foundation = skills.first ?? "your strongest skill"
         let supportingSkill = skills.dropFirst().first ?? challenge.skill
-        let source = "Personalized for \(role) • built from \(challenge.route.company) interview themes"
+        let source = "Personalized for \(role) • AI-generated from real \(challenge.route.company) interview reviews"
 
         switch challenge.route.category {
         case .technical:
