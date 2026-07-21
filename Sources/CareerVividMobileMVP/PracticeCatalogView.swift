@@ -134,7 +134,7 @@ private struct MockInterviewGuideHeader: View {
             }
 
             VStack(alignment: .leading, spacing: 0) {
-                Text("Interview stages, key topics, and sample questions sourced from real engineers at each company — powered by")
+                Text("Interview stages, key topics, and realistic practice questions our frontier AI generates from thousands of real interview reviews on")
                 Link("techinterview.org.", destination: URL(string: "https://www.techinterview.org/")!)
                     .underline()
             }

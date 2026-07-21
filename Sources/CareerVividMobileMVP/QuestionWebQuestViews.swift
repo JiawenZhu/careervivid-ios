@@ -54,7 +54,7 @@ enum QuestionWebQuestStage: String {
 
     /// Only specialized, browser-based stages leave the native real-time
     /// answer flow. Screening, behavioral, values, and final always stay in
-    /// the app, even though they all use the same official question catalog.
+    /// the app, even though they all use the same generated question catalog.
     static func resolve(stageTitle: String?, category: PracticeCategory) -> Self? {
         switch stageTitle?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
         case "coding round", "coding":
@@ -275,10 +275,10 @@ struct QuestionCatalogLoadingScreen: View {
             ProgressView()
                 .controlSize(.large)
                 .tint(Color.cvStudioAccent)
-            Text("Loading official questions")
+            Text("Preparing your questions")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.cvQuestionInk)
-            Text("Getting the \(company) \(stageTitle ?? "mock interview") prompts from CareerVivid's web-aligned guide.")
+            Text("Building realistic \(company) \(stageTitle ?? "mock interview") questions from real interview reviews.")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.cvQuestionBody)
                 .multilineTextAlignment(.center)
@@ -302,7 +302,7 @@ struct QuestionCatalogUnavailableScreen: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.largeTitle.weight(.bold))
                 .foregroundStyle(Color.cvQuestionWarning)
-            Text("Official questions unavailable")
+            Text("Questions unavailable")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color.cvQuestionInk)
             Text("We did not substitute a generic question. \(message)")
@@ -327,7 +327,7 @@ struct QuestionCatalogUnavailableScreen: View {
         .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.cvQuestionBorder, lineWidth: 1))
         .padding(24)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(company) official questions unavailable. \(message)")
+        .accessibilityLabel("\(company) interview questions unavailable. \(message)")
     }
 }
 

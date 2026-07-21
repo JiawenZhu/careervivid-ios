@@ -105,8 +105,8 @@ struct InterviewLiveToken: Decodable, Sendable {
     let questions: [String]?
 }
 
-/// Official company-stage questions supplied by the authenticated CareerVivid
-/// backend. The backend is generated from the same source guides as web so a
+/// Company-stage interview questions supplied by the authenticated CareerVivid
+/// backend. The backend generates them from the same source guides as web so a
 /// native attempt never falls back to a second, generic question bank.
 struct MobileInterviewQuestionSet: Decodable, Sendable {
     let success: Bool
