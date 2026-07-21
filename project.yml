@@ -47,7 +47,7 @@ schemes:
   CareerVividMobileMVP:
     build:
       targets:
-        CareerVividMobileMVP: [running, testing, profiling, analyzing]
+        CareerVividMobileMVP: [running, testing, profiling, analyzing, archiving]
         CareerVividMobileMVPTests: [testing]
     run:
       config: Debug
