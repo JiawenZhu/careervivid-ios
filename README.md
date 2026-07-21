@@ -89,8 +89,6 @@ saved report → Home insights → next focused challenge
 | [docs/ios-mobile-experience.md](docs/ios-mobile-experience.md) | Complete annotated iOS product walkthrough |
 | [docs/screenshots/ios/](docs/screenshots/ios/) | Screen evidence used by this README and the experience guide |
 
-> The earlier `GreenCardInterviewMVP` and `VisaInterviewPrepMVP` prototypes now live in their own repository: [JiawenZhu/interview-mvp-apps](https://github.com/JiawenZhu/interview-mvp-apps).
-
 ## Run Vivid locally
 
 ```bash
